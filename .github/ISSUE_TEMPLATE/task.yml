@@ -1,0 +1,29 @@
+name: Implementation task
+description: 有依赖与验收标准的开发任务
+title: "[Task] "
+body:
+  - type: input
+    id: planning-id
+    attributes:
+      label: Planning ID
+      description: 来自 planning/backlog.json；不是 GitHub Issue 编号。
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and non-goals
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria and failure tests
+    validations:
+      required: true

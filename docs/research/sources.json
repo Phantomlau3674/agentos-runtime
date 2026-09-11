@@ -1,0 +1,153 @@
+{
+  "as_of": "2026-09-11",
+  "evidence_scope": "documentation review and limited static inspection; no runtime benchmarks",
+  "sources": [
+    {
+      "id": "S01",
+      "title": "Microsoft UFO",
+      "url": "https://github.com/microsoft/UFO",
+      "supports": "README：Windows UIA/Win32/COM、GUI/API 混合执行、批量动作及 Galaxy DAG。51% 是上游报告，不是本项目实验。",
+      "limitations": "README 与指定文档；动作 schema 静态抽查，未运行。"
+    },
+    {
+      "id": "S01a",
+      "title": "UFO multi-action documentation",
+      "url": "https://github.com/microsoft/UFO/blob/364eb7969d392e857299ceaf14bd6057e5b00078/documents/docs/ufo2/core_features/multi_action.md",
+      "supports": "批量预测动作、执行时核对状态和失败降级。",
+      "limitations": "固定 commit 用于本次抽查，不声称是当日最新 HEAD。"
+    },
+    {
+      "id": "S01b",
+      "title": "UFO action structures",
+      "url": "https://github.com/microsoft/UFO/blob/364eb7969d392e857299ceaf14bd6057e5b00078/ufo/agents/processors/schemas/actions.py",
+      "supports": "ActionCommandInfo 与 ListActionCommandInfo 的定义；源码头标注 MIT。",
+      "limitations": "只抽查前 180 行。数据结构存在不证明全局事务或回滚可靠。"
+    },
+    {
+      "id": "S02",
+      "title": "AIOS",
+      "url": "https://github.com/agiresearch/AIOS",
+      "supports": "Agent 调度、上下文、存储、工具与内核抽象。",
+      "limitations": "仅文档评估；不采用仓库级许可未澄清的代码。"
+    },
+    {
+      "id": "S02a",
+      "title": "AIOS root LICENSE",
+      "url": "https://github.com/agiresearch/AIOS/blob/main/LICENSE",
+      "supports": "本轮读取返回单个换行符；blob SHA 8b137891791fe96927ad78e64b0aad7bded08bdc。",
+      "limitations": "只证明此根文件内容不足；不推断全部历史、子目录或其他授权均不存在。"
+    },
+    {
+      "id": "S02b",
+      "title": "LiteCUA paper abstract",
+      "url": "https://arxiv.org/abs/2505.18829",
+      "supports": "把电脑能力以 MCP 方式提供给 Agent 的路线。",
+      "limitations": "论文摘要参考，不把旧测评分数与当前系统直接排名。"
+    },
+    {
+      "id": "S03",
+      "title": "Cua",
+      "url": "https://github.com/trycua/cua",
+      "supports": "跨平台电脑驱动、隔离环境、SDK 与评测工具。",
+      "limitations": "功能按平台/应用区分；未安装验证。"
+    },
+    {
+      "id": "S03a",
+      "title": "Cua driver design",
+      "url": "https://github.com/trycua/cua/blob/main/libs/cua-driver/README.md",
+      "supports": "契约、权限模式与驱动接口。",
+      "limitations": "部分历史记录能力属特定平台预览；不能外推到全部操作系统。"
+    },
+    {
+      "id": "S04",
+      "title": "Rivet agentOS",
+      "url": "https://github.com/rivet-dev/agentos",
+      "supports": "嵌入式虚拟 OS：V8/WASM、虚拟文件与进程、受控外部能力、可持续工作流。",
+      "limitations": "README 标注 preview/API 可变；冷启动对比不代表电脑任务端到端提效。"
+    },
+    {
+      "id": "S05",
+      "title": "OpenFang",
+      "url": "https://github.com/RightNow-AI/openfang",
+      "supports": "自主 Agent 运行时、任务包、渠道、MCP 和权限/审计声明。",
+      "limitations": "README 层级信息，不把安全层数或营销性能表当作审计证明。"
+    },
+    {
+      "id": "S06",
+      "title": "BrowserOS",
+      "url": "https://github.com/browseros-ai/BrowserOS",
+      "supports": "Agent 专用浏览器、MCP、观察与并行浏览任务。",
+      "limitations": "浏览器边界不等同于整台电脑；根许可与 Chromium/依赖许可分别核对。"
+    },
+    {
+      "id": "S07",
+      "title": "Vercel agent-browser",
+      "url": "https://github.com/vercel-labs/agent-browser",
+      "supports": "原生 CLI、语义定位与 batch 模式；现成强浏览器基线候选。",
+      "limitations": "批量命令不自动提供业务级事务或正确性证明。"
+    },
+    {
+      "id": "S08",
+      "title": "Bytebot",
+      "url": "https://github.com/bytebot-ai/bytebot",
+      "supports": "容器化 Linux 桌面 Agent、可视观察/接管。",
+      "limitations": "页面显示于 2026-03-07 归档；只作历史架构参考。"
+    },
+    {
+      "id": "S09",
+      "title": "Agent S",
+      "url": "https://github.com/simular-ai/Agent-S",
+      "supports": "GUI 操作研究框架与跨平台桌面任务路线。",
+      "limitations": "区分公开代码、托管产品与不同模型的结果；未进行运行对照。"
+    },
+    {
+      "id": "S10",
+      "title": "Agno",
+      "url": "https://github.com/agno-agi/agno",
+      "supports": "Agent 服务框架、持久状态、控制面、审批与可观测性。",
+      "limitations": "服务端 Agent 平台，不等于桌面应用语义层。"
+    },
+    {
+      "id": "S11",
+      "title": "LangGraph",
+      "url": "https://github.com/langchain-ai/langgraph",
+      "supports": "有状态 Agent 编排与持久化基础。",
+      "limitations": "可复用上层编排；不据此推断外部动作具备原子性。"
+    },
+    {
+      "id": "S11a",
+      "title": "LangGraph persistence",
+      "url": "https://docs.langchain.com/oss/python/langgraph/persistence",
+      "supports": "Checkpointer 与 Store 区别；内存 checkpointer 重启不保留。",
+      "limitations": "当前 durable-execution 链接重定向至此页；实现时应核对具体 checkpointer 版本。"
+    },
+    {
+      "id": "S12",
+      "title": "Cloudflare Code Mode",
+      "url": "https://blog.cloudflare.com/code-mode/",
+      "supports": "将工具组合放在代码执行中，让中间数据不反复经过模型。",
+      "limitations": "2025-09-26 的架构文章，不当作 2026 年产品定价/可用性说明。"
+    },
+    {
+      "id": "S13",
+      "title": "Playwright actionability",
+      "url": "https://playwright.dev/docs/actionability",
+      "supports": "动作前可操作性检查与自动等待。",
+      "limitations": "不能替代业务结果验证。"
+    },
+    {
+      "id": "S14",
+      "title": "MCP tools specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
+      "supports": "工具结构、结构化结果与调用约束的版本化参考。",
+      "limitations": "固定 2025-11-25 版本作设计参考；SDK 实现时重新确认兼容版本。"
+    },
+    {
+      "id": "S15",
+      "title": "MIT license text",
+      "url": "https://spdx.org/licenses/MIT.html",
+      "supports": "本项目原创材料采用的许可文本。",
+      "limitations": "不改变第三方依赖许可。"
+    }
+  ]
+}

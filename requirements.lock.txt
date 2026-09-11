@@ -1,0 +1,13 @@
+# Exact versions available in the development environment; hashes are pending.
+pydantic==2.13.4
+pydantic_core==2.46.4
+annotated-types==0.7.0
+typing-extensions==4.16.0
+typing-inspection==0.4.2
+pytest==9.0.2
+iniconfig==2.3.0
+packaging==25.0
+pluggy==1.6.0
+pygments==2.20.0
+
+setuptools==82.0.1

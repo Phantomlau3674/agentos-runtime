@@ -1,0 +1,1812 @@
+{
+  "schema_version": "planning.v1",
+  "as_of": "2026-09-11",
+  "status": "planned_only",
+  "issue_sync_status": "not_created",
+  "notes": [
+    "任务 ID 不是 GitHub Issue 编号。",
+    "所有实现/实验尚为 todo，不代表策划文档未完成。",
+    "conditional 项须通过前期价值门槛后单独批准。",
+    "owner_setup 只标识必须由所有者完成的连接/创建步骤，不代表请求密码。"
+  ],
+  "tasks": [
+    {
+      "id": "GOV-001",
+      "epic": "治理与选型",
+      "title": "建立并确认公开远端仓库",
+      "milestone": "M0",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "owner_setup",
+      "depends_on": [],
+      "deliverable": "已初始化 README 的公开仓库与经确认的 URL",
+      "acceptance_criteria": [
+        "实际读取确认仓库存在且可见性为 public",
+        "确认目标属于项目所有者，不更改无关仓库",
+        "记录远端 URL，未创建时保持 blocked 标记"
+      ],
+      "failure_tests": [
+        "无创建接口时不伪造成功",
+        "无写权限时不绕过或要求粘贴令牌"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "GOV-002",
+      "epic": "治理与选型",
+      "title": "发布策划、贡献约定与许可清单",
+      "milestone": "M0",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "GOV-001"
+      ],
+      "deliverable": "首个文档提交和可追踪任务索引",
+      "acceptance_criteria": [
+        "上传前读取远端现有内容并避免覆盖冲突",
+        "原创许可、第三方引用和私密资料边界说明齐全",
+        "计划 ID 与未来 Issue 编号分离"
+      ],
+      "failure_tests": [
+        "提交失败不得标已上传",
+        "公开文件不含私人资料或运行数据"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "GOV-003",
+      "epic": "治理与选型",
+      "title": "固定开发环境和可复现依赖",
+      "milestone": "M0",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [],
+      "deliverable": "开发工具链、锁文件与平台矩阵",
+      "acceptance_criteria": [
+        "核对官方当前兼容信息并选择一个支持的 Python 版本",
+        "从空环境可重复安装开发依赖",
+        "记录当前不能测试的操作系统和原生软件"
+      ],
+      "failure_tests": [
+        "不支持的版本明确退出",
+        "无网/下载失败给出诊断，不运行远程脚本绕过"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "GOV-004",
+      "epic": "治理与选型",
+      "title": "建立合成数据与公开资料边界",
+      "milestone": "M0",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [],
+      "deliverable": "测试数据生成规范和公开检查规则",
+      "acceptance_criteria": [
+        "所有样例不含真实个人/公司数据",
+        "输入和输出目录权限明确",
+        "公开前检查凭据、账号、浏览器 profile 和隐私文本"
+      ],
+      "failure_tests": [
+        "意外放入真实数据时阻止发布",
+        "日志脱敏不依赖人工逐行发现"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "GOV-005",
+      "epic": "治理与选型",
+      "title": "做上游复用最小实验",
+      "milestone": "M0",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "GOV-003",
+        "GOV-004"
+      ],
+      "deliverable": "UFO/Cua/Rivet 候选记录与浏览器二选一结果",
+      "acceptance_criteria": [
+        "至少验证所选浏览器工具的一条任务及失败行为",
+        "原生平台不具备时记未测，不伪造 UFO/Cua 运行结果",
+        "为拟引入依赖记录版本、许可、维护成本和替代方案"
+      ],
+      "failure_tests": [
+        "AIOS 许可未澄清不复制其代码",
+        "预览 API 或平台不匹配时可选择不采用"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "GOV-006",
+      "epic": "治理与选型",
+      "title": "冻结首版边界与继续/停止决定",
+      "milestone": "M0",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "GOV-005",
+        "BEN-003",
+        "BEN-004"
+      ],
+      "deliverable": "首轮 go/no-go ADR",
+      "acceptance_criteria": [
+        "指出 B 仍未解决且值得解决的问题",
+        "已有工具足够时允许停止 Runtime 自研",
+        "先冻结投资门槛再开展 C 的实现"
+      ],
+      "failure_tests": [
+        "不能以 A 的弱基线代替 B",
+        "不因已写策划而强行批准平台开发"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "BEN-001",
+      "epic": "基准与测量",
+      "title": "生成首个任务族和独立标准答案",
+      "milestone": "M0",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "GOV-004"
+      ],
+      "deliverable": "合成 CSV 生成器、固定种子和 oracle",
+      "acceptance_criteria": [
+        "10/100/1000 文件规模可配置",
+        "独立计算金额、币种、异常和行数期望",
+        "包含不影响隐私的不同输入变体"
+      ],
+      "failure_tests": [
+        "重复 ID、缺失字段、非法数字进入异常清单",
+        "不同币种不得直接汇总成一个金额"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "BEN-002",
+      "epic": "基准与测量",
+      "title": "定义逐次运行计量格式",
+      "milestone": "M0",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "BEN-001"
+      ],
+      "deliverable": "RunRecord schema 和原始日志格式",
+      "acceptance_criteria": [
+        "记录模型请求、Token、时间、人工介入、缓存与失败",
+        "缺失计量用 null/missing，不写 0",
+        "所有失败尝试保留在分母"
+      ],
+      "failure_tests": [
+        "模型异常或 timeout 仍生成记录",
+        "不把任务取消当成功"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "BEN-003",
+      "epic": "基准与测量",
+      "title": "完成现有方式 A 的基线",
+      "milestone": "M0",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "GOV-003",
+        "BEN-001",
+        "BEN-002"
+      ],
+      "deliverable": "可复现的逐步调用基线与未测项",
+      "acceptance_criteria": [
+        "先离线参考流程，后在授权预算内接模型",
+        "固定任务、模型设置、权限和工具版本",
+        "留存真实运行记录，不能只给估算"
+      ],
+      "failure_tests": [
+        "遇到不明确输入允许请求澄清",
+        "API 不可用则标未测，不模拟真实 Token"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "BEN-004",
+      "epic": "基准与测量",
+      "title": "完成成熟批处理 B 的强基线",
+      "milestone": "M0",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "BEN-003",
+        "GOV-005"
+      ],
+      "deliverable": "受审查批处理流程与 A/B 比较",
+      "acceptance_criteria": [
+        "与 A 使用相同适配能力和验收条件",
+        "允许现成缓存、批处理与合理恢复，不故意削弱",
+        "区分工具改进收益与未来 Runtime 增量"
+      ],
+      "failure_tests": [
+        "不降低安全确认/验收换速度",
+        "两组输入与资源不一致时拒绝比较"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "BEN-005",
+      "epic": "基准与测量",
+      "title": "实现可控故障注入",
+      "milestone": "M2",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "EXE-001",
+        "DAT-001"
+      ],
+      "deliverable": "F1—F12 故障钩子和运行标记",
+      "acceptance_criteria": [
+        "故障可由阶段/节点/随机种子定位",
+        "注入过程有明确日志",
+        "注入不改变原始 oracle 或隐私边界"
+      ],
+      "failure_tests": [
+        "intent 前后崩溃能区分",
+        "写后丢响应不能只模拟为写前失败"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "BEN-006",
+      "epic": "基准与测量",
+      "title": "执行 A/B/C 配对实验",
+      "milestone": "M4",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "INT-003",
+        "ADP-005",
+        "ADP-006",
+        "REC-006",
+        "BEN-005"
+      ],
+      "deliverable": "完整原始实验记录",
+      "acceptance_criteria": [
+        "至少两个任务族及不同变体",
+        "分离冷/热启动、正常/故障和并行度",
+        "随机交错运行并保存全部失败与人工接管"
+      ],
+      "failure_tests": [
+        "样本不足时不宣称可靠性",
+        "无法统一模型内部配置时标产品级比较"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "BEN-007",
+      "epic": "基准与测量",
+      "title": "做收益归因与维护成本分析",
+      "milestone": "M4",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "BEN-006"
+      ],
+      "deliverable": "消融结果和总成本分析",
+      "acceptance_criteria": [
+        "分别关/开批处理、产物引用、恢复、并发作归因",
+        "报告中位数、差异范围和质量",
+        "记录适配/修复人时，计算是否值得继续"
+      ],
+      "failure_tests": [
+        "不得只报告最快一次",
+        "不能把冷启动降低外推为全部长任务倍率"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "BEN-008",
+      "epic": "基准与测量",
+      "title": "发布证据与阶段投资结论",
+      "milestone": "M4",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "BEN-007",
+        "SEC-008",
+        "OPS-002"
+      ],
+      "deliverable": "公开基准报告或诚实的停止结论",
+      "acceptance_criteria": [
+        "按预设质量/效率/安全门槛评估",
+        "公开失败、限制和未测项目",
+        "若收益只来自适配器，报告应明确收敛方向"
+      ],
+      "failure_tests": [
+        "未达到门槛不能换一组阈值宣称通过",
+        "无实测不得写性能徽章"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "API-001",
+      "epic": "契约",
+      "title": "实现 TaskSpec 与 ActionSpec",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "GOV-006"
+      ],
+      "deliverable": "版本化模型与 JSON Schema",
+      "acceptance_criteria": [
+        "拒绝未知版本、重复节点和循环依赖",
+        "必要字段、类型与大小验证完整",
+        "规范化后的 plan_hash 可复现"
+      ],
+      "failure_tests": [
+        "无限循环/超大 payload 被拒绝",
+        "自由文本 approved=true 不产生授权"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "API-002",
+      "epic": "契约",
+      "title": "建立受信能力注册表",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "API-001"
+      ],
+      "deliverable": "能力 schema、版本与效果注册机制",
+      "acceptance_criteria": [
+        "每项操作声明参数、输出、效果和恢复语义",
+        "未注册或版本不匹配不可调用",
+        "描述与实际入口一一对应"
+      ],
+      "failure_tests": [
+        "模型伪称 read_only 不改变注册效果",
+        "社区工具不能未经审核自动注册"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "API-003",
+      "epic": "契约",
+      "title": "实现产物引用与受限读取协议",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "API-001"
+      ],
+      "deliverable": "ArtifactRef/manifest/摘要模型",
+      "acceptance_criteria": [
+        "句柄不是任意文件路径",
+        "字段、类型、分页和返回大小明确",
+        "输入引用和前序引用必须能在计划中解析"
+      ],
+      "failure_tests": [
+        "跨任务 artifact_id 请求被拒绝",
+        "产物缺失不是空文件或空结果"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "API-004",
+      "epic": "契约",
+      "title": "实现预算和静态计划检查",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "API-001"
+      ],
+      "deliverable": "额度校验器与受限 DAG",
+      "acceptance_criteria": [
+        "限制节点数、扇出、输出大小和执行时间",
+        "限制并发与批处理项数",
+        "未知操作组合不执行"
+      ],
+      "failure_tests": [
+        "极大批次提前拒绝",
+        "循环和无界表达式不能绕过额度"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "API-005",
+      "epic": "契约",
+      "title": "统一状态、错误与计量结构",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "API-001",
+        "BEN-002"
+      ],
+      "deliverable": "公共 TaskStatus/ActionResult/ErrorRecord",
+      "acceptance_criteria": [
+        "区分 unknown_effect、failed、unverified 与 verified",
+        "错误含影响范围和可恢复成果",
+        "计量缺失可表达而非伪造"
+      ],
+      "failure_tests": [
+        "超时不直接假定效果未发生",
+        "底层 success 但验收失败仍不可任务成功"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "API-006",
+      "epic": "契约",
+      "title": "增加契约一致性与版本测试",
+      "milestone": "M1",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "API-001",
+        "API-002",
+        "API-003",
+        "API-004",
+        "API-005"
+      ],
+      "deliverable": "契约测试集和版本兼容规则",
+      "acceptance_criteria": [
+        "schema 往返序列化一致",
+        "CLI/MCP 使用同一核心模型",
+        "破坏性变更要求版本升级和 ADR"
+      ],
+      "failure_tests": [
+        "旧计划不能静默用新语义执行",
+        "多余字段不能偷偷成为执行参数"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "DAT-001",
+      "epic": "状态与产物",
+      "title": "实现 SQLite 状态与事件日志",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "API-001",
+        "API-005"
+      ],
+      "deliverable": "任务/节点/操作/事件表及事务",
+      "acceptance_criteria": [
+        "状态变化和对应事件同事务",
+        "单一状态写入者与任务版本校验",
+        "重启能恢复已持久化任务记录"
+      ],
+      "failure_tests": [
+        "中途数据库错误不产生半个成功状态",
+        "迟到 worker 不能覆盖新版本"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "DAT-002",
+      "epic": "状态与产物",
+      "title": "实现不可变产物存储",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "API-003",
+        "SEC-001"
+      ],
+      "deliverable": "blob 存储、manifest 和 staging 提交",
+      "acceptance_criteria": [
+        "生成随机 artifact_id 与内容 hash",
+        "写入 staging 后校验并发布，不覆写原始文件",
+        "模型默认只得到允许的摘要"
+      ],
+      "failure_tests": [
+        "路径拼接不能读其他目录",
+        "不完整或损坏 blob 不能被标有效"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "DAT-003",
+      "epic": "状态与产物",
+      "title": "实现输入快照与只读工作区",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "DAT-002",
+        "SEC-002"
+      ],
+      "deliverable": "导入 manifest、快照与来源哈希",
+      "acceptance_criteria": [
+        "每次导入有明确授权目录",
+        "执行读取固定输入版本",
+        "任务结束原始输入 hash 不变"
+      ],
+      "failure_tests": [
+        "检查后替换源文件不会悄悄更改快照",
+        "符号链接/重解析跳出范围被拒绝"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "DAT-004",
+      "epic": "状态与产物",
+      "title": "实现依赖追踪与局部失效",
+      "milestone": "M2",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "DAT-003",
+        "API-002"
+      ],
+      "deliverable": "输入—节点—产物依赖索引",
+      "acceptance_criteria": [
+        "输入、处理规则或适配器版本变化可检测",
+        "只复用仍可验证的产物",
+        "依赖不完整时采取保守重算"
+      ],
+      "failure_tests": [
+        "改变一个输入后不得混用新旧结果",
+        "相同文件名不等于相同内容"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "DAT-005",
+      "epic": "状态与产物",
+      "title": "实现迁移、备份和恢复检查",
+      "milestone": "M2",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "DAT-001",
+        "DAT-002"
+      ],
+      "deliverable": "schema_migrations 与备份/恢复流程",
+      "acceptance_criteria": [
+        "在副本验证迁移并能回退数据格式",
+        "备份同时包含必要 blob manifest",
+        "不支持的状态版本阻止继续执行"
+      ],
+      "failure_tests": [
+        "备份缺 blob 时显式损坏",
+        "恢复旧数据库不盲重放未知外部动作"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "DAT-006",
+      "epic": "状态与产物",
+      "title": "实现配额、保留期与垃圾回收",
+      "milestone": "M4",
+      "priority": "P2",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "DAT-004",
+        "DAT-005"
+      ],
+      "deliverable": "dry-run 清理与空间配额",
+      "acceptance_criteria": [
+        "活跃任务、已批准计划和保留证据有引用保护",
+        "删除前展示范围",
+        "达到配额拒绝新写并保留现有状态"
+      ],
+      "failure_tests": [
+        "GC 不清理仍被任务引用的产物",
+        "空间不足不得损坏已完成文件"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "EXE-001",
+      "epic": "执行器",
+      "title": "实现串行确定动作执行",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "API-002",
+        "API-004",
+        "DAT-001",
+        "SEC-001"
+      ],
+      "deliverable": "离线运行一条有限 DAG 的 executor",
+      "acceptance_criteria": [
+        "每步派发前走 broker",
+        "operation intent 先落盘再执行",
+        "执行状态可以定位到具体节点"
+      ],
+      "failure_tests": [
+        "任何未知动作先拒绝",
+        "异常不跳过后置验收直接成功"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "EXE-002",
+      "epic": "执行器",
+      "title": "实现批量动作与失败边界",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "EXE-001",
+        "ADP-002"
+      ],
+      "deliverable": "有界批次执行和项级结果",
+      "acceptance_criteria": [
+        "无需模型逐文件介入",
+        "每个数据项仍受范围/类型约束",
+        "局部失败明确列出已做/未做/未知项"
+      ],
+      "failure_tests": [
+        "批次第 N 项失败不隐瞒前 N-1 项效果",
+        "单项越权不得被批量许可掩盖"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "EXE-003",
+      "epic": "执行器",
+      "title": "加入有限并行与资源键",
+      "milestone": "M2",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "EXE-002",
+        "DAT-004"
+      ],
+      "deliverable": "有界并发调度器",
+      "acceptance_criteria": [
+        "仅派发依赖已通过的节点",
+        "同一文件/浏览器实例冲突写串行",
+        "保持确定的最终产物顺序或显式排序规则"
+      ],
+      "failure_tests": [
+        "任务并行不能突破资源额度",
+        "有依赖的节点不得提前读取未完成数据"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "EXE-004",
+      "epic": "执行器",
+      "title": "实现超时、取消和清理",
+      "milestone": "M2",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "EXE-001",
+        "API-005"
+      ],
+      "deliverable": "取消令牌、时限与 worker 退出协议",
+      "acceptance_criteria": [
+        "取消后停止派发新节点",
+        "说明在途动作与已保存产物",
+        "超时过程有资源清理和状态证据"
+      ],
+      "failure_tests": [
+        "取消不能伪称所有效果已撤销",
+        "阻塞 worker 不得永久占据资源"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "EXE-005",
+      "epic": "执行器",
+      "title": "接入节点与任务级验收",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "EXE-002",
+        "ADP-003"
+      ],
+      "deliverable": "独立 verifier 执行路径",
+      "acceptance_criteria": [
+        "节点执行和结果核验分开",
+        "任务成功需要目标验收全通过",
+        "输出记录验收器版本和证据"
+      ],
+      "failure_tests": [
+        "数字错误或缺文件都失败",
+        "模型口头确认不能代替 oracle"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "EXE-006",
+      "epic": "执行器",
+      "title": "完善租约与旧 worker 防护",
+      "milestone": "M2",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "EXE-003",
+        "EXE-004"
+      ],
+      "deliverable": "租约、fencing token 和冲突处理",
+      "acceptance_criteria": [
+        "过期 worker 无法写当前状态",
+        "无法阻止外部迟到写时不重派重复写",
+        "资源释放后重新检查输入版本"
+      ],
+      "failure_tests": [
+        "模拟失联 worker 后迟到响应",
+        "不能用数据库锁声称锁住外部软件"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "SEC-001",
+      "epic": "权限与安全",
+      "title": "实现默认拒绝的策略代理",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "API-002"
+      ],
+      "deliverable": "资源/动作/主体的权限交集",
+      "acceptance_criteria": [
+        "真实解析目标和受信效果决定授权",
+        "每步执行前校验最新策略",
+        "未支持动作和外部写默认拒绝"
+      ],
+      "failure_tests": [
+        "请求自身声明管理员无效",
+        "上层换入口不能绕过策略"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "SEC-002",
+      "epic": "权限与安全",
+      "title": "实现文件范围与平台路径防护",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "SEC-001",
+        "GOV-003"
+      ],
+      "deliverable": "路径约束与安全快照读取",
+      "acceptance_criteria": [
+        "使用平台适当的安全打开/链接处理",
+        "拒绝未支持的 UNC/重解析/特殊路径",
+        "不使用单纯字符串前缀判定权限"
+      ],
+      "failure_tests": [
+        "../、大小写、编码和链接替换负例",
+        "平台不能保证边界时拒绝而不是默许"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "SEC-003",
+      "epic": "权限与安全",
+      "title": "约束浏览器网络与会话",
+      "milestone": "M3",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "SEC-001",
+        "ADP-004"
+      ],
+      "deliverable": "专用 profile 与受控网络测试",
+      "acceptance_criteria": [
+        "只准 mock 站点与明确批准的子资源",
+        "处理跳转、iframe、WebSocket 等通道",
+        "不读取个人浏览器 profile"
+      ],
+      "failure_tests": [
+        "页面跳转外网或内部敏感地址被阻断",
+        "新 context 不被宣传为宿主安全沙盒"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "SEC-004",
+      "epic": "权限与安全",
+      "title": "实现审批绑定与撤销",
+      "milestone": "M2",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "SEC-001",
+        "API-001"
+      ],
+      "deliverable": "人类审批记录与作用范围校验",
+      "acceptance_criteria": [
+        "绑定 plan_hash、解析参数、版本、效果和有效期",
+        "Agent 没有自我批准接口",
+        "撤销对未派发节点立即生效"
+      ],
+      "failure_tests": [
+        "改参数后旧审批失效",
+        "已过期/跨主体审批不能重放"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "SEC-005",
+      "epic": "权限与安全",
+      "title": "处理不可信内容与提示注入",
+      "milestone": "M2",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "SEC-001",
+        "API-005"
+      ],
+      "deliverable": "内容分区、摘要规则与注入测试",
+      "acceptance_criteria": [
+        "网页/文件文字只能作为数据",
+        "工具错误与结果不能修改权限策略",
+        "恶意说明可进入日志但不能作为系统命令执行"
+      ],
+      "failure_tests": [
+        "CSV 要求读取秘密目录不执行",
+        "页面伪装管理员指令不产生审批"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "SEC-006",
+      "epic": "权限与安全",
+      "title": "实现日志脱敏与秘密边界",
+      "milestone": "M2",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "SEC-001",
+        "DAT-001"
+      ],
+      "deliverable": "结构化脱敏和诊断包预览",
+      "acceptance_criteria": [
+        "默认无遥测/无私密原文大日志",
+        "敏感头、参数和异常信息被过滤",
+        "以后接凭据时只由 broker 使用，不返回模型"
+      ],
+      "failure_tests": [
+        "模拟密钥出现在错误、URL和请求头",
+        "截图或产物摘要不能绕过数据分级"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "SEC-007",
+      "epic": "权限与安全",
+      "title": "约束受信 worker 与资源",
+      "milestone": "M2",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "EXE-004",
+        "SEC-002"
+      ],
+      "deliverable": "worker 进程范围与限额",
+      "acceptance_criteria": [
+        "不开放任意命令执行",
+        "固定受信可执行入口和输出大小",
+        "明确 trusted-local 不抵御宿主恶意进程"
+      ],
+      "failure_tests": [
+        "超大输出/死循环可终止",
+        "模型请求安装插件或运行任意代码被拒绝"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "SEC-008",
+      "epic": "权限与安全",
+      "title": "完成安全负例与发布阻断",
+      "milestone": "M4",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "SEC-002",
+        "SEC-003",
+        "SEC-004",
+        "SEC-005",
+        "SEC-006",
+        "SEC-007",
+        "REC-004",
+        "INT-002"
+      ],
+      "deliverable": "负例测试报告与 stop-ship 清单",
+      "acceptance_criteria": [
+        "覆盖路径、网络、审批、秘密和重放边界",
+        "任何越界写/泄密阻断预览",
+        "报告未覆盖威胁，不宣称零风险"
+      ],
+      "failure_tests": [
+        "不能为提高成功率关闭断言",
+        "发现真实漏洞时使用适当私密渠道"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "ADP-001",
+      "epic": "适配器",
+      "title": "实现无副作用 mock 适配器",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "API-002"
+      ],
+      "deliverable": "确定输入输出和故障回执",
+      "acceptance_criteria": [
+        "支持成功、失败、延时、部分完成和未知效果",
+        "可重复测试不同状态",
+        "不调用外部服务或模型"
+      ],
+      "failure_tests": [
+        "非法参数不产生效果",
+        "可控失败不能被当真实应用兼容证明"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "ADP-002",
+      "epic": "适配器",
+      "title": "实现只读文件和副本动作",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "ADP-001",
+        "DAT-003"
+      ],
+      "deliverable": "清单、读取、生成新副本和 hash 操作",
+      "acceptance_criteria": [
+        "只处理明确导入的输入",
+        "输出必须在任务工作区",
+        "批次结果按项给出证据"
+      ],
+      "failure_tests": [
+        "文件被占用/删除时明确失败",
+        "不同任务不能覆写彼此产物"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "ADP-003",
+      "epic": "适配器",
+      "title": "实现合成表格处理动作",
+      "milestone": "M1",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "ADP-002",
+        "BEN-001"
+      ],
+      "deliverable": "CSV 解析、校验、分组与导出",
+      "acceptance_criteria": [
+        "Decimal/最小单位规则一致",
+        "币种隔离并记录舍入方式",
+        "summary/errors 与 oracle 对应"
+      ],
+      "failure_tests": [
+        "非法行、重复 ID 和边界数值可验证",
+        "CSV 公式样式文本不被执行"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "ADP-004",
+      "epic": "适配器",
+      "title": "实现选定浏览器桥接",
+      "milestone": "M3",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "API-002",
+        "GOV-005"
+      ],
+      "deliverable": "单一默认浏览器适配器",
+      "acceptance_criteria": [
+        "使用固定版本与专用会话",
+        "可读结构化状态与有限语义操作",
+        "定义崩溃、取消和会话重建规则"
+      ],
+      "failure_tests": [
+        "目标元素被遮挡或失效时返回实际错误",
+        "不开放任意 eval 作为兜底"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "ADP-005",
+      "epic": "适配器",
+      "title": "实现本地模拟草稿流程",
+      "milestone": "M3",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "ADP-004",
+        "SEC-003",
+        "REC-003"
+      ],
+      "deliverable": "mock 草稿站与填写/读回/导出动作",
+      "acceptance_criteria": [
+        "无需账号、外网或付费模型",
+        "按幂等 key 查询既有草稿",
+        "草稿字段与输入 hash 绑定并独立核验"
+      ],
+      "failure_tests": [
+        "写成功但响应丢失不产生重复草稿",
+        "页面结构变化不填写错误目标"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "ADP-006",
+      "epic": "适配器",
+      "title": "实现第二个独立文件任务族",
+      "milestone": "M3",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "ADP-002",
+        "EXE-005",
+        "DAT-004"
+      ],
+      "deliverable": "合成文件清单/去重/副本任务",
+      "acceptance_criteria": [
+        "复用同一动作与状态契约",
+        "不拷贝另一个独立 executor",
+        "可测试多个分支的局部失效"
+      ],
+      "failure_tests": [
+        "同名不同内容不能误判重复",
+        "只改变一个输入时未变分支仍可核验"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "REC-001",
+      "epic": "恢复",
+      "title": "实现重启扫描与操作对账",
+      "milestone": "M2",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "DAT-001",
+        "EXE-001",
+        "API-005"
+      ],
+      "deliverable": "任务恢复协调器",
+      "acceptance_criteria": [
+        "从数据库区分已记录与在途操作",
+        "通过适配器 reconcile 查询真实状态",
+        "不能确定则 unknown_effect 并阻断下游"
+      ],
+      "failure_tests": [
+        "intent 已记录但没有回执的窗口",
+        "不把所有 running 节点直接重新执行"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "REC-002",
+      "epic": "恢复",
+      "title": "实现文件 staging 崩溃恢复",
+      "milestone": "M2",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "REC-001",
+        "DAT-002",
+        "EXE-002"
+      ],
+      "deliverable": "文件与索引对账器",
+      "acceptance_criteria": [
+        "识别未提交、已提交和损坏产物",
+        "同卷与跨卷提交语义分开",
+        "清理孤立文件前保护仍引用的数据"
+      ],
+      "failure_tests": [
+        "rename 后数据库提交前崩溃",
+        "磁盘满不损坏先前有效版本"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "REC-003",
+      "epic": "恢复",
+      "title": "实现幂等查询与未知效果阻断",
+      "milestone": "M2",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "REC-001",
+        "ADP-001"
+      ],
+      "deliverable": "mock 外部写接口与对账协议",
+      "acceptance_criteria": [
+        "同一意图重试沿用同一 key",
+        "可查询时核验既有结果",
+        "不支持幂等查询的操作明确停止"
+      ],
+      "failure_tests": [
+        "写后丢响应的 mock 故障",
+        "新输入不得重用旧意图 key"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "REC-004",
+      "epic": "恢复",
+      "title": "实现按输入版本的任务续跑",
+      "milestone": "M2",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "REC-002",
+        "REC-003",
+        "DAT-004",
+        "EXE-006"
+      ],
+      "deliverable": "resume 路径与受影响子图计算",
+      "acceptance_criteria": [
+        "重启先验输入、授权和产物有效性",
+        "复用已核验节点而非全部重跑",
+        "过期审批和失效输入阻止续跑"
+      ],
+      "failure_tests": [
+        "产物损坏或源版本变化可发现",
+        "过期 worker 不能覆盖新结果"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "REC-005",
+      "epic": "恢复",
+      "title": "实现重试分类与有界退避",
+      "milestone": "M2",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "REC-001",
+        "EXE-004"
+      ],
+      "deliverable": "可重试分类器与 retry budget",
+      "acceptance_criteria": [
+        "纯计算、无效果失败与未知效果区分",
+        "重试总数和时间受任务预算限制",
+        "所有重试进入计量日志"
+      ],
+      "failure_tests": [
+        "不可重试错误不得无限循环",
+        "取消后不因定时器触发再派发"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "REC-006",
+      "epic": "恢复",
+      "title": "完成端到端故障回归",
+      "milestone": "M3",
+      "priority": "P0",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "REC-004",
+        "REC-005",
+        "BEN-005"
+      ],
+      "deliverable": "可复现的 chaos 测试集",
+      "acceptance_criteria": [
+        "F1—F12 逐项记录通过/失败/未覆盖",
+        "验证输入未改及中间产物复用",
+        "验证最终结果不是仅状态成功"
+      ],
+      "failure_tests": [
+        "不允许跳过最难的写后崩溃窗口",
+        "超时和未知效果保持诚实状态"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "INT-001",
+      "epic": "接入与体验",
+      "title": "实现 MCP 与 CLI 共用入口",
+      "milestone": "M3",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "API-006",
+        "EXE-005",
+        "REC-004"
+      ],
+      "deliverable": "任务/状态/产物工具接口",
+      "acceptance_criteria": [
+        "同一参数在两个入口产生相同策略和状态",
+        "分页与输出上限一致",
+        "不暴露 Agent 可用的审批工具"
+      ],
+      "failure_tests": [
+        "格式错误安全返回不崩进程",
+        "一条入口不能拥有更宽权限"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "INT-002",
+      "epic": "接入与体验",
+      "title": "实现人类控制面和审批路径",
+      "milestone": "M3",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "SEC-004",
+        "EXE-004"
+      ],
+      "deliverable": "本地查看、拒绝、批准与取消界面",
+      "acceptance_criteria": [
+        "说明准确读写范围与已完成产物",
+        "审批身份/能力与 worker 分离",
+        "限制尚不能强认证的开发模式"
+      ],
+      "failure_tests": [
+        "Agent 不能借同一 RPC 自己批准",
+        "批准页面显示内容与实际 plan_hash 一致"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "INT-003",
+      "epic": "接入与体验",
+      "title": "接入一个现有 Agent 客户端",
+      "milestone": "M3",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "INT-001",
+        "BEN-004"
+      ],
+      "deliverable": "一个真实客户端的端到端测试记录",
+      "acceptance_criteria": [
+        "连接配置可复现并注明版本",
+        "无需修改 Agent 内核即可提交受限计划",
+        "统计所有模型请求并标注不可见计量"
+      ],
+      "failure_tests": [
+        "客户端没有某协议功能时明确不兼容",
+        "不用虚构请求模拟“集成已完成”"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "INT-004",
+      "epic": "接入与体验",
+      "title": "提供任务进度与产物证据视图",
+      "milestone": "M4",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "INT-001",
+        "INT-002",
+        "DAT-001"
+      ],
+      "deliverable": "最小任务面板或等价可读界面",
+      "acceptance_criteria": [
+        "用户看到阶段、异常、已保留产物和核验结果",
+        "刷新/重连后从真实状态恢复",
+        "状态不依赖模型自由文本"
+      ],
+      "failure_tests": [
+        "连断线不能显示假完成",
+        "产物权限影响视图读取"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "INT-005",
+      "epic": "接入与体验",
+      "title": "完成非技术使用者错误体验",
+      "milestone": "M4",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "INT-004",
+        "OPS-001"
+      ],
+      "deliverable": "正常流程与错误处理说明",
+      "acceptance_criteria": [
+        "错误解释影响与下一步而非只显示堆栈",
+        "无需用户改代码完成受控示例",
+        "必要的权限/费用决定由用户确认"
+      ],
+      "failure_tests": [
+        "安装缺依赖和浏览器故障可诊断",
+        "不能以“再试一次”处理未知副作用"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "OPS-001",
+      "epic": "发布与运维",
+      "title": "打包可复现的本地试用",
+      "milestone": "M4",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "GOV-003",
+        "INT-003"
+      ],
+      "deliverable": "固定版本预览包与离线示例",
+      "acceptance_criteria": [
+        "干净环境可运行合成任务",
+        "离线示例不意外付费调用模型",
+        "卸载/清理不删原始文件"
+      ],
+      "failure_tests": [
+        "缺依赖时给出可执行诊断",
+        "不要求用户复制秘密到公开仓库"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "OPS-002",
+      "epic": "发布与运维",
+      "title": "提供健康检查与诊断导出",
+      "milestone": "M4",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "OPS-001",
+        "SEC-006",
+        "DAT-005"
+      ],
+      "deliverable": "本地 doctor 与脱敏诊断包",
+      "acceptance_criteria": [
+        "检测数据库、产物、浏览器、版本和空间",
+        "导出前能预览文件范围",
+        "未允许时不上传任何诊断"
+      ],
+      "failure_tests": [
+        "敏感字段不进入导出",
+        "损坏数据库不自动覆盖唯一备份"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "OPS-003",
+      "epic": "发布与运维",
+      "title": "进行全新环境验收与支持说明",
+      "milestone": "M4",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "OPS-001",
+        "INT-005",
+        "REC-006"
+      ],
+      "deliverable": "支持矩阵、教程与兼容性记录",
+      "acceptance_criteria": [
+        "明确实际测过的 OS/应用版本",
+        "从安装到失败恢复走完整流程",
+        "未测平台写 unsupported/unverified"
+      ],
+      "failure_tests": [
+        "不能把 Linux mock 通过标为 Windows Office 支持",
+        "权限不足时不会引导关闭系统安全功能"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "OPS-004",
+      "epic": "发布与运维",
+      "title": "建立 CI、依赖与发布检查",
+      "milestone": "M4",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "OPS-001",
+        "API-006",
+        "SEC-008"
+      ],
+      "deliverable": "真实 CI、依赖清单和发布检查表",
+      "acceptance_criteria": [
+        "lint/type/unit/integration 分层执行",
+        "需真实环境的测试不能伪造绿灯",
+        "许可、秘密扫描和锁文件检查纳入流程"
+      ],
+      "failure_tests": [
+        "失败检查阻止发布",
+        "不在无证据时添加 passing 徽章"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "OPS-005",
+      "epic": "发布与运维",
+      "title": "发布有界个人预览或收敛版本",
+      "milestone": "M4",
+      "priority": "P1",
+      "scope": "core",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "OPS-003",
+        "OPS-004",
+        "BEN-008",
+        "GOV-002"
+      ],
+      "deliverable": "预览版本、变更与实际限制",
+      "acceptance_criteria": [
+        "仅发布已通过的任务/环境范围",
+        "附证据报告、未测项与已知风险",
+        "若 Runtime 增量不足，可发布适配器/测试集而非平台"
+      ],
+      "failure_tests": [
+        "不得将预览标为生产级 OS",
+        "失败实验不能被宣传文案删去"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "EXP-001",
+      "epic": "条件扩展",
+      "title": "评估一个原生桌面任务",
+      "milestone": "M5",
+      "priority": "P2",
+      "scope": "conditional",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "OPS-005"
+      ],
+      "deliverable": "实际平台上的 Cua/UFO 集成或不采用决定",
+      "acceptance_criteria": [
+        "先确认真实 OS/应用/权限",
+        "在隔离测试环境运行一个高频任务",
+        "同 B 比较收益与维护成本"
+      ],
+      "failure_tests": [
+        "不能争抢用户主桌面做首测",
+        "无对应平台时保持未验证"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "EXP-002",
+      "epic": "条件扩展",
+      "title": "评估 Blender 持续编辑适配",
+      "milestone": "M5",
+      "priority": "P2",
+      "scope": "conditional",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "EXP-001"
+      ],
+      "deliverable": "合成场景副本批量操作试点",
+      "acceptance_criteria": [
+        "定位显式对象并保留锁定相机/对象不变",
+        "生成前后预览和参数差异",
+        "仅开放注册动作，不任意执行模型 Python"
+      ],
+      "failure_tests": [
+        "改一个对象不破坏其他已确认对象",
+        "审美判断不伪装成确定程序验证"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "EXP-003",
+      "epic": "条件扩展",
+      "title": "评估固定模板 Office 适配",
+      "milestone": "M5",
+      "priority": "P2",
+      "scope": "conditional",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "EXP-001"
+      ],
+      "deliverable": "一种模板和指定版本的文档流程",
+      "acceptance_criteria": [
+        "核对官方自动化限制和授权",
+        "数字/对象/布局分别验证",
+        "只生成新文件，明确未支持特性"
+      ],
+      "failure_tests": [
+        "宏/公式/外链/版本差异需要显式策略",
+        "后台自动化弹窗与死锁不得忽略"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "EXP-004",
+      "epic": "条件扩展",
+      "title": "评估隔离代码模式后端",
+      "milestone": "M5",
+      "priority": "P2",
+      "scope": "conditional",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "OPS-005",
+        "SEC-008"
+      ],
+      "deliverable": "Rivet/VM 等候选与威胁模型更新",
+      "acceptance_criteria": [
+        "先验证无权限时无法访问宿主资源",
+        "所有对外效果通过受控绑定",
+        "证明新增场景值得承担复杂性"
+      ],
+      "failure_tests": [
+        "不把 subprocess 当安全沙盒",
+        "网络/环境变量/主机挂载负例必须覆盖"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "EXP-005",
+      "epic": "条件扩展",
+      "title": "评估多用户或跨设备需求",
+      "milestone": "M5",
+      "priority": "P2",
+      "scope": "conditional",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "OPS-005"
+      ],
+      "deliverable": "需求证据与是否扩展的 ADR",
+      "acceptance_criteria": [
+        "先有真实使用量和独立任务资源需求",
+        "权限、租户、费用与数据去向重新建模",
+        "无收益证据则保持单机"
+      ],
+      "failure_tests": [
+        "不能把单机任务状态直接当分布式一致性",
+        "跨租户产物绝不能通过 ID 共享"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "EXP-006",
+      "epic": "条件扩展",
+      "title": "评估适配器生态与上游贡献",
+      "milestone": "M5",
+      "priority": "P2",
+      "scope": "conditional",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [
+        "OPS-005"
+      ],
+      "deliverable": "贡献上游/插件契约/维护成本方案",
+      "acceptance_criteria": [
+        "先确定哪些公共能力适合贡献上游",
+        "第三方插件授权与分发许可独立评估",
+        "没有可持续维护资源就不建市场"
+      ],
+      "failure_tests": [
+        "不自动信任社区 manifest",
+        "插件安装不能带来隐式管理员权限"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    },
+    {
+      "id": "RES-001",
+      "epic": "待补研究",
+      "title": "补充可核验的 X 原帖研究",
+      "milestone": "M0",
+      "priority": "P2",
+      "scope": "research_optional",
+      "status": "todo",
+      "owner_role": "engineering",
+      "depends_on": [],
+      "deliverable": "原帖作者/日期/正文与代码证据对照",
+      "acceptance_criteria": [
+        "只记录可读取的公开原帖",
+        "分开作者宣传、用户演示和独立复现",
+        "仍无法读取时保留证据不足结论"
+      ],
+      "failure_tests": [
+        "不得根据空搜索说没有竞品",
+        "不能编造发帖内容或热度"
+      ],
+      "evidence_required": "实际变更、运行环境与测试记录；不能仅凭生成代码标为完成",
+      "github_issue_number": null
+    }
+  ]
+}

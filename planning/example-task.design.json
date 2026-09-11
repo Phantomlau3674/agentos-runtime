@@ -1,0 +1,97 @@
+{
+  "status": "design_example_not_executable",
+  "schema_version": "aor.task.v0",
+  "goal": "汇总合成输入，在本地模拟站生成草稿并核验",
+  "inputs": [
+    {
+      "alias": "dataset",
+      "binding": "owner_selected_synthetic_snapshot"
+    }
+  ],
+  "requested_capabilities": [
+    "files.read_snapshot",
+    "tabular.aggregate",
+    "files.write_new_artifact",
+    "mock_site.write_draft"
+  ],
+  "budget": {
+    "max_nodes": 12,
+    "max_batch_items": 100,
+    "max_workers": 2,
+    "max_runtime_seconds": 300,
+    "max_artifact_bytes": 10485760,
+    "allow_model_calls": false
+  },
+  "nodes": [
+    {
+      "id": "validate",
+      "operation": "tabular.validate",
+      "depends_on": [],
+      "arguments": {
+        "input_ref": "inputs.dataset"
+      },
+      "outputs": [
+        "valid_rows",
+        "errors"
+      ]
+    },
+    {
+      "id": "aggregate",
+      "operation": "tabular.aggregate_by_currency",
+      "depends_on": [
+        "validate"
+      ],
+      "arguments": {
+        "input_ref": "validate.valid_rows"
+      },
+      "outputs": [
+        "summary"
+      ]
+    },
+    {
+      "id": "write_files",
+      "operation": "files.export_new_artifacts",
+      "depends_on": [
+        "aggregate",
+        "validate"
+      ],
+      "arguments": {
+        "summary_ref": "aggregate.summary",
+        "errors_ref": "validate.errors"
+      },
+      "outputs": [
+        "manifest"
+      ]
+    },
+    {
+      "id": "draft",
+      "operation": "mock_site.upsert_draft",
+      "depends_on": [
+        "aggregate"
+      ],
+      "arguments": {
+        "summary_ref": "aggregate.summary"
+      },
+      "outputs": [
+        "draft_receipt"
+      ]
+    },
+    {
+      "id": "verify",
+      "operation": "verification.check_fixture_goal",
+      "depends_on": [
+        "write_files",
+        "draft"
+      ],
+      "arguments": {
+        "manifest_ref": "write_files.manifest",
+        "receipt_ref": "draft.draft_receipt",
+        "oracle_binding": "trusted_fixture_oracle"
+      },
+      "outputs": [
+        "verification_report"
+      ]
+    }
+  ],
+  "note": "输入引用语法、adapter_version、幂等 key 和最终授权由正式契约及服务端补齐；这是说明性设计，不可直接调用执行器。"
+}

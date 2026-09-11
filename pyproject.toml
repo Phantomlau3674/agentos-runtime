@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools==82.0.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentos-runtime"
+version = "0.0.2"
+description = "Offline, bounded execution spike for an agent-native runtime"
+readme = "README.md"
+requires-python = ">=3.11,<3.15"
+dependencies = ["pydantic==2.13.4"]
+
+[project.optional-dependencies]
+dev = ["pytest==9.0.2"]
+
+[project.scripts]
+agentos = "agentos_runtime.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-ra"

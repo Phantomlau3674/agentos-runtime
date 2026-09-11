@@ -1,0 +1,157 @@
+{
+  "date": "2026-09-11",
+  "scope": "local_fixture_recovery_and_cli_gateway",
+  "full_tasks_not_completed": true,
+  "platform_go_no_go": "pending",
+  "evidence": [
+    "reports/tests.xml",
+    "reports/pytest-output.txt",
+    "reports/demo-run.json",
+    "reports/IMPLEMENTATION_REPORT.md",
+    "reports/r2-tests.xml",
+    "reports/r2-pytest.txt",
+    "reports/r2-concurrency-stress.json",
+    "reports/IMPLEMENTATION_R2.md"
+  ],
+  "progress": [
+    {
+      "task_id": "GOV-003",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "GOV-004",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "BEN-001",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "BEN-002",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "BEN-004",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "API-001",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "API-002",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "API-004",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "API-005",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "DAT-001",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "DAT-002",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "DAT-003",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "EXE-001",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "EXE-002",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "EXE-004",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "EXE-005",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "SEC-001",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "SEC-002",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "ADP-002",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "ADP-003",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "REC-001",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "REC-002",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "API-003",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "DAT-004",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "SEC-004",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "SEC-006",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "REC-003",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "REC-004",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "REC-006",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "INT-001",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "INT-003",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "INT-004",
+      "status": "partial_evidence_not_full_acceptance"
+    },
+    {
+      "task_id": "OPS-002",
+      "status": "partial_evidence_not_full_acceptance"
+    }
+  ],
+  "release": "0.0.2",
+  "notes": [
+    "Only fixed local fixture resumes; not external effects or generic DAG.",
+    "INT-001: CLI only, no MCP transport.",
+    "INT-003: scripted process client, no real Agent capability regression.",
+    "OPS-002: content-free diagnostic export; not full installer/GUI."
+  ]
+}

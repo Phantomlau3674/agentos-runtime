@@ -1,0 +1,42 @@
+{
+  "schema_version": "planning.v1",
+  "status": "proposed_not_created_on_github",
+  "milestones": [
+    {
+      "id": "M0",
+      "name": "复用与强基线",
+      "exit_gate": "明确 B 未解决的问题；若上游满足需求则采用上游或停止扩大。",
+      "calendar_deadline": null
+    },
+    {
+      "id": "M1",
+      "name": "离线最小执行闭环",
+      "exit_gate": "合成计划从输入到独立验收；原始文件不变、权限拒绝可测试。",
+      "calendar_deadline": null
+    },
+    {
+      "id": "M2",
+      "name": "状态、恢复与权限",
+      "exit_gate": "对崩溃、未知效果、版本变化和取消给出正确且可重复的处理。",
+      "calendar_deadline": null
+    },
+    {
+      "id": "M3",
+      "name": "现有 Agent 接入与第二任务族",
+      "exit_gate": "同一运行时支持两个独立任务族，未复制两套 executor。",
+      "calendar_deadline": null
+    },
+    {
+      "id": "M4",
+      "name": "测量与个人预览",
+      "exit_gate": "真实 A/B/C 证据、安全负例与全新环境验收；结果决定继续或收敛。",
+      "calendar_deadline": null
+    },
+    {
+      "id": "M5",
+      "name": "有条件扩展",
+      "exit_gate": "每个新应用/平台都有独立收益、权限与维护预算，不默认开工。",
+      "calendar_deadline": null
+    }
+  ]
+}
