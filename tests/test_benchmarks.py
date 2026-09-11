@@ -14,7 +14,7 @@ import environment
 import kernel_benchmark
 import probe_logical_reads
 import probe_plan_freeze
-from kernels import aggregate_int_cents, aggregate_lazy
+from kernels import aggregate_lazy, reference_decimal
 
 from agentos_runtime.errors import RuntimeFault
 from agentos_runtime.tabular import aggregate
@@ -62,7 +62,7 @@ def test_equivalence_includes_accumulation_past_int64():
     result = aggregate(case["blobs"], case["max_rows"])
     whole, frac = result["groups"][0]["amount"].split(".")
     assert int(whole) * 100 + int(frac) > 2**63 - 1
-    assert aggregate_int_cents(case["blobs"], case["max_rows"]) == result
+    assert reference_decimal(case["blobs"], case["max_rows"]) == result
     assert aggregate_lazy(case["blobs"], case["max_rows"]) == result
 
 
@@ -70,7 +70,7 @@ def test_fault_cases_raise_same_code():
     cases = {c["name"]: c for c in kernel_benchmark.equivalence_corpus()}
     for name, code in (("row_budget", "ROW_BUDGET"), ("bad_header", "CSV_SCHEMA"),
                        ("bad_utf8", "CSV_PARSE")):
-        for kernel in (aggregate, aggregate_lazy, aggregate_int_cents):
+        for kernel in (aggregate, reference_decimal, aggregate_lazy):
             try:
                 kernel(cases[name]["blobs"], cases[name]["max_rows"])
             except RuntimeFault as exc:

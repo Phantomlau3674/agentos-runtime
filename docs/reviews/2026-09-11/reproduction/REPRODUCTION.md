@@ -30,6 +30,10 @@
 
 原始样本见 [kernel-benchmark.json](kernel-benchmark.json)（每核每轮毫秒值、预热方式、随机顺序种子）。
 
+## REV-005 采纳记录（同分支后续提交）
+
+依据上述 62 例零差异与本机计时，`src/agentos_runtime/tabular.py` 的 `aggregate` 已切换为延迟分组 + 整数分实现；原 Decimal 实现原样保留在 `benchmarks/kernels.py::reference_decimal`，作为差分回归 oracle。采纳后复测：62 例零差异；本机中位数 adopted 45.17ms / reference 61.25ms / lazy-decimal 59.19ms（[kernel-adoption-rev005.json](kernel-adoption-rev005.json)），内核级约 -26%，仅本机探索性数字，不构成端到端或模型侧提效。lazy 单独版本无收益，未采纳。tabular.py 属 engine_fingerprint 组成，旧工作区回执按既有 ENGINE_CHANGED 规则失效。
+
 ## 明确不做的事
 
 - 全部是**逻辑读取**（受信读取原语调用计数），不是物理磁盘 I/O。

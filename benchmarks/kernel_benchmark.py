@@ -26,13 +26,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from agentos_runtime.errors import RuntimeFault  # noqa: E402
 from agentos_runtime.tabular import aggregate  # noqa: E402
 
-from kernels import aggregate_int_cents, aggregate_lazy  # noqa: E402
+from kernels import aggregate_lazy, reference_decimal  # noqa: E402
 
 HEADER = b"item_id,category,quantity,unit_price,currency\n"
 
-KERNELS = {"reference_decimal": aggregate,
-           "lazy_groups": aggregate_lazy,
-           "int_cents": aggregate_int_cents}
+# reference_decimal is the pre-REV-005 oracle; "adopted_int_cents" is the
+# kernel now shipping in agentos_runtime.tabular.aggregate.
+KERNELS = {"reference_decimal": reference_decimal,
+           "adopted_int_cents": aggregate,
+           "lazy_groups_decimal": aggregate_lazy}
 
 
 def _csv(rows: list[list[str]], *, bom: bool = False) -> bytes:
@@ -118,9 +120,11 @@ def check_equivalence(cases: list[dict]) -> list[dict]:
                 return {"ok": fn(case["blobs"], case["max_rows"])}
             except RuntimeFault as exc:
                 return {"fault": exc.code}
-        expected = outcome(aggregate)
-        for name in ("lazy_groups", "int_cents"):
-            actual = outcome(KERNELS[name])
+        expected = outcome(reference_decimal)
+        for name, fn in KERNELS.items():
+            if name == "reference_decimal":
+                continue
+            actual = outcome(fn)
             if actual != expected:
                 mismatches.append({"case": case["name"], "kernel": name,
                                    "expected": expected, "actual": actual})

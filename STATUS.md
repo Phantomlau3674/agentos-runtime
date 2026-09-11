@@ -9,6 +9,7 @@
 - 本地模拟草稿站在隔离分支开发；其 HTTP 夹具不等于已接入运行时，也不等于浏览器验收完成。
 - rev-001-002-measurements 分支：REV-001 环境固定脚本与 REV-002 四类局部测量已重建并保存原始结果（docs/reviews/2026-09-11/reproduction/）；8 项测量测试通过。内核候选仅在 benchmarks/ 评估。
 - 同分支：REV-003 外部 wire 计划与内部不可变 CompiledPlan 分离已实施（ADR 0008）；公开 API 与恢复语义未变，compiler.py 计入 engine_fingerprint。6 项编译边界测试通过，本机完整套件 195 通过、5 跳过。
+- 同分支：REV-005 汇总内核改为延迟分组+整数分（依据 62 例差分零差异与本机内核计时，见 reproduction/kernel-adoption-rev005.json）；Decimal 参考实现保留为 benchmarks 回归 oracle；旧工作区因 engine_fingerprint 变化按既有规则失效。
 
 ## 仍未完成
 

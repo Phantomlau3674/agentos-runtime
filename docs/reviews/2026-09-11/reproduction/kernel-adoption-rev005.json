@@ -1,0 +1,64 @@
+{
+  "config": {
+    "corpus_bytes": 651334,
+    "files": 200,
+    "rounds": 7,
+    "seed": 7,
+    "total_rows": 20000,
+    "warmup_passes": 1
+  },
+  "equivalence": {
+    "cases": 62,
+    "mismatches": []
+  },
+  "schema_version": "aor.kernel-benchmark.v1",
+  "scope": [
+    "local compute kernel only; logical timing on this machine",
+    "not a runtime, end-to-end or model-side claim",
+    "historical 59.89/55.61/39.22 ms are not thresholds to meet"
+  ],
+  "timing_ms": {
+    "adopted_int_cents": {
+      "max": 46.9954,
+      "median": 45.1656,
+      "min": 44.0076,
+      "samples": [
+        45.0762,
+        45.8889,
+        46.1259,
+        45.1656,
+        44.3541,
+        44.0076,
+        46.9954
+      ]
+    },
+    "lazy_groups_decimal": {
+      "max": 61.8432,
+      "median": 59.1863,
+      "min": 57.5843,
+      "samples": [
+        60.4083,
+        61.8432,
+        58.0532,
+        57.5843,
+        59.1863,
+        58.2846,
+        60.6272
+      ]
+    },
+    "reference_decimal": {
+      "max": 71.6685,
+      "median": 61.2549,
+      "min": 60.8372,
+      "samples": [
+        60.8528,
+        60.8372,
+        71.6685,
+        64.2917,
+        61.9173,
+        61.2549,
+        60.9264
+      ]
+    }
+  }
+}
