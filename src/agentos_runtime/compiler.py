@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 
-from .contracts import OPERATIONS, Limits, PlanSpec
+from .contracts import OPERATIONS, GoalContract, Limits, PlanSpec
 from .errors import RuntimeFault
 
 
@@ -36,6 +36,7 @@ class CompiledPlan:
     goal: str
     nodes: tuple[CompiledNode, ...]
     limits: Limits
+    contract: GoalContract | None
     canonical_bytes: bytes
     plan_hash: str
 
@@ -69,5 +70,6 @@ def compile_plan(plan: PlanSpec) -> CompiledPlan:
     canonical = detached.canonical_bytes()
     return CompiledPlan(schema_version=detached.schema_version, goal=detached.goal,
                         nodes=nodes, limits=detached.limits,
+                        contract=detached.goal_contract,
                         canonical_bytes=canonical,
                         plan_hash=hashlib.sha256(canonical).hexdigest())

@@ -29,11 +29,30 @@ class ActionSpec(StrictModel):
     depends_on: list[str] = Field(default_factory=list, max_length=3)
 
 
+class GoalContract(StrictModel):
+    """Owner-declared success conditions attached to a plan (REV-009).
+
+    Tuple fields keep the contract deeply immutable once validated. This is a
+    declaration enforced at execution/publish boundaries -- not proof that the
+    declared invariants are true.
+    """
+
+    schema_version: Literal["aor.goal-contract.v0.1"] = "aor.goal-contract.v0.1"
+    goal: Annotated[str, Field(min_length=1, max_length=1000)]
+    invariants: tuple[str, ...] = ()
+    # Narrows the owner policy for this plan only; never widens it.
+    allowed_operations: tuple[Operation, ...] | None = None
+    acceptance: Annotated[str, Field(min_length=1, max_length=64)] = "fixture_integer_cents.v0.1"
+    unresolved: tuple[str, ...] = ()
+    human_judgment: tuple[str, ...] = ()
+
+
 class PlanSpec(StrictModel):
     schema_version: Literal["aor.fixture-plan.v0.1"] = "aor.fixture-plan.v0.1"
     goal: Annotated[str, Field(min_length=1, max_length=1000)]
     nodes: list[ActionSpec] = Field(min_length=4, max_length=4)
     limits: Limits = Field(default_factory=Limits)
+    goal_contract: GoalContract | None = None
 
     @model_validator(mode="after")
     def validate_chain(self) -> PlanSpec:
@@ -50,8 +69,10 @@ class PlanSpec(StrictModel):
         return self
 
     def canonical_bytes(self) -> bytes:
-        return json.dumps(self.model_dump(), sort_keys=True, separators=(",", ":"),
-                          ensure_ascii=False).encode("utf-8")
+        # exclude_none keeps plans without a contract byte-identical to before
+        # the field existed, so their plan_hash stays stable.
+        return json.dumps(self.model_dump(exclude_none=True), sort_keys=True,
+                          separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
     @property
     def plan_hash(self) -> str:

@@ -51,7 +51,10 @@ class Policy:
 
 def _preflight(plan: PlanSpec, input_root: Path, workspace: Path, policy: Policy) -> tuple[CompiledPlan, Path, Path]:
     compiled = compile_plan(plan)
+    scope = compiled.contract.allowed_operations if compiled.contract else None
     for node in compiled.nodes:
+        if scope is not None and node.operation not in scope:
+            raise RuntimeFault('CONTRACT_DENIED', '该动作超出本计划目标合同的授权范围。')
         policy.check(node.operation)
     input_root, workspace = checked_path(input_root), checked_path(workspace)
     if workspace == input_root or input_root in workspace.parents or workspace in input_root.parents:
@@ -249,6 +252,9 @@ class Runtime:
                         artifact_manifest = receipt['artifacts']
                         data = _validate_artifacts(output, artifact_manifest, plan.limits.max_artifact_bytes, full=True)
                         report = verify(data['summary.json'], data['errors.json'], data['summary.csv'], oracle, hashes, hashes)
+                        if plan.contract is not None and report['validator'] != plan.contract.acceptance:
+                            raise RuntimeFault('ACCEPTANCE_MISMATCH',
+                                               '验收标准与实际核验器不一致，不能按合同交付。')
                         if not report['passed'] or json.loads(data['verification.json']) != report:
                             raise RuntimeFault('VERIFICATION_FAILED', '恢复时独立核验失败。')
                     reused.append(node.id)
@@ -311,6 +317,9 @@ class Runtime:
                     final_hashes = {n: digest(b) for n, b in self._read_sources(input_root, plan, check_budget).items()}
                     report = verify(persisted['summary.json'], persisted['errors.json'], persisted['summary.csv'],
                                     oracle, hashes, final_hashes)
+                    if plan.contract is not None and report['validator'] != plan.contract.acceptance:
+                        raise RuntimeFault('ACCEPTANCE_MISMATCH',
+                                           '验收标准与实际核验器不一致，不能按合同交付。')
                     report_blob = json_bytes(report)
                     if sum(v['bytes'] for v in artifact_manifest.values()) + len(report_blob) > plan.limits.max_artifact_bytes:
                         raise RuntimeFault('ARTIFACT_BUDGET', '核验报告加产物超过预算。')
@@ -357,6 +366,14 @@ class Runtime:
                               'model_cost': None, 'model_measurement': 'not_run',
                               'executed_nodes': executed, 'reused_nodes': reused, 'reconciled_nodes': reconciled},
                   'artifacts': artifact_manifest,
+                  'acceptance': (None if plan.contract is None else {
+                      'contract_sha256': digest(plan.contract.model_dump_json().encode()),
+                      'verifier_engine': engine_fingerprint(),
+                      'validator': report['validator'] if report else None,
+                      'input_version': digest(json_bytes(hashes)),
+                      'unresolved': list(plan.contract.unresolved),
+                      'human_judgment': list(plan.contract.human_judgment),
+                  }),
                   'artifact_state': ('verified_outputs' if status == 'SUCCEEDED' else
                                      'published_unconfirmed' if output.exists() else 'not_delivered'),
                   'verification': report,

@@ -12,6 +12,7 @@
 - 同分支：REV-005 汇总内核改为延迟分组+整数分（依据 62 例差分零差异与本机内核计时，见 reproduction/kernel-adoption-rev005.json）；Decimal 参考实现保留为 benchmarks 回归 oracle；旧工作区因 engine_fingerprint 变化按既有规则失效。
 - 同分支：REV-004 产物版本绑定读取会话已实现（artifact_open/session_read/session_close，ADR 0009），工具增至 11 个并自动进入 MCP；会话为进程内已验证快照，非实时磁盘检查。9 项会话测试通过，本机完整套件 204 通过、5 跳过。
 - 同分支：REV-007 MCP 传输层执行/控制通道分离（ToolLanes：submit/resume 2 槽+4 等待，控制 8 槽+32 等待，超限返回 QUEUE_FULL）；RPC 取消只停止等待，业务取消仍是 task_cancel。3 项通道测试通过，本机完整套件 207 通过、5 跳过。
+- 同分支：REV-009 目标合同 GoalContract 与验收绑定（ADR 0010）：合同只能收窄授权、acceptance 绑定核验器版本、记录含合同/引擎/输入版本与未决项；无合同计划 plan_hash 不变。6 项合同测试通过，本机完整套件 213 通过、5 跳过。
 
 ## 仍未完成
 

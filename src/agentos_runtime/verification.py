@@ -19,4 +19,8 @@ def verify(summary_blob: bytes, errors_blob: bytes, csv_blob: bytes, oracle: dic
               "csv_exact": csv_rows == expected_csv,
               "row_conservation": summary["valid_rows"] + summary["error_rows"] == summary["total_rows"]}
     return {"validator": "fixture_integer_cents.v0.1", "passed": all(checks.values()), "checks": checks,
+            "unchecked": ["physical_durability_on_this_filesystem",
+                          "semantic_correctness_beyond_fixture_oracle",
+                          "isolation_from_hostile_host_processes",
+                          "live_model_integration"],
             "scope": "synthetic fixture only; oracle supplied by trusted test owner"}
