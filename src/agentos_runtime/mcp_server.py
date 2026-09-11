@@ -60,7 +60,7 @@ def create_server(home: Path) -> Server:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog='agentos-mcp',
-        description='MCP stdio server exposing the 8 gateway tools; stdio only, no listener.')
+        description='MCP stdio server exposing the gateway tools; stdio only, no listener.')
     parser.add_argument('--home', type=Path, required=True,
                         help='owner-initialized task space (see: agentos init-demo)')
     args = parser.parse_args(argv)
@@ -77,7 +77,7 @@ def main(argv: list[str] | None = None) -> int:
         async with stdio_server() as (read_stream, write_stream):
             await server.run(read_stream, write_stream, init_options)
 
-    print(f'{SERVER_NAME} {__version__}: serving 8 tools over stdio', file=sys.stderr)
+    print(f'{SERVER_NAME} {__version__}: serving tools over stdio', file=sys.stderr)
     try:
         anyio.run(serve)
     except KeyboardInterrupt:

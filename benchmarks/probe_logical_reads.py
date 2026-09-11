@@ -58,6 +58,14 @@ def measure(files: int = 100, rows: int = 10, seed: int = 7) -> dict:
             "artifact_bytes": target["bytes"],
         }
         with ReadLog() as log:
+            opened = gateway.artifact_open(submitted["task_id"], target["artifact_id"])
+        phases["artifact_open"] = {**log.report(), "artifact_bytes": target["bytes"]}
+        with ReadLog() as log:
+            for _ in range(3):
+                gateway.artifact_session_read(opened["session_id"], offset=0, max_chars=1)
+            gateway.artifact_session_close(opened["session_id"])
+        phases["session_read_three_pages_and_close"] = log.report()
+        with ReadLog() as log:
             gateway.task_inspect(submitted["task_id"])
         phases["task_inspect"] = log.report()
 

@@ -46,6 +46,10 @@
 
 `pytest tests/test_benchmarks.py`：8 项通过。同一环境完整套件 `pytest -q --basetemp=.local\tmp\pytest`：189 通过、5 跳过（既有 Windows 链接/权限用例）。沙箱外 `Temp\pytest-of-*` 在本会话被拒，故使用工作区内 basetemp；CI 环境不受影响。
 
+## REV-004 会话读取证据（同分支后续提交）
+
+`logical-reads.json` 已按新接口重测：`artifact_open` 只核验目标产物（1 次读取 / 41,003 字节），三次 `artifact_session_read` 加 `artifact_session_close` 全程 0 次文件读取；对照旧 `artifact_read` 单字符路径仍为 5 次 / 84,554 字节。`task_inspect` 全量核验语义未变。
+
 ## 下一步可执行任务
 
 REV-002 已具备基础设施，仍需：物理 I/O 对照（可选）、更多轮次与冷/热条件、把等价语料接入未来任何内核变更的回归门槛。随后按依赖序推进 REV-003/004/005/007 的小切片；int_cents 本机有收益迹象，REV-005 的"是否采纳"仍以差分 + 消融证据为准。
