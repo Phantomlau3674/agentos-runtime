@@ -1,0 +1,208 @@
+{
+  "fixture": {
+    "files": 100,
+    "rows_per_file": 10,
+    "seed": 7
+  },
+  "phases": {
+    "artifact_read_one_char": {
+      "artifact_bytes": 41003,
+      "measurement_kind": "logical_calls_to_checked_reader; not physical disk I/O",
+      "read_bounded_by_site": {
+        "gateway": {
+          "bytes": 41003,
+          "calls": 1,
+          "distinct_files": 1
+        },
+        "runtime": {
+          "bytes": 43551,
+          "calls": 4,
+          "distinct_files": 4
+        }
+      },
+      "read_bounded_total": {
+        "bytes": 84554,
+        "calls": 5
+      },
+      "returned_chars": 1,
+      "source_passes": {
+        "bytes": 0,
+        "calls": 0,
+        "detail": [],
+        "files": 0
+      }
+    },
+    "gateway_task_submit": {
+      "measurement_kind": "logical_calls_to_checked_reader; not physical disk I/O",
+      "read_bounded_by_site": {
+        "gateway": {
+          "bytes": 79501,
+          "calls": 116,
+          "distinct_files": 3
+        },
+        "runtime": {
+          "bytes": 337784,
+          "calls": 707,
+          "distinct_files": 104
+        }
+      },
+      "read_bounded_total": {
+        "bytes": 417285,
+        "calls": 823
+      },
+      "source_passes": {
+        "bytes": 251020,
+        "calls": 7,
+        "detail": [
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          },
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          },
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          },
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          },
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          },
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          },
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          }
+        ],
+        "files": 700
+      },
+      "status": "SUCCEEDED"
+    },
+    "resume_succeeded": {
+      "measurement_kind": "logical_calls_to_checked_reader; not physical disk I/O",
+      "read_bounded_by_site": {
+        "runtime": {
+          "bytes": 79953,
+          "calls": 105,
+          "distinct_files": 105
+        },
+        "storage": {
+          "bytes": 1815,
+          "calls": 1,
+          "distinct_files": 1
+        }
+      },
+      "read_bounded_total": {
+        "bytes": 81768,
+        "calls": 106
+      },
+      "source_passes": {
+        "bytes": 35860,
+        "calls": 1,
+        "detail": [
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          }
+        ],
+        "files": 100
+      },
+      "status": "SUCCEEDED"
+    },
+    "run": {
+      "measurement_kind": "logical_calls_to_checked_reader; not physical disk I/O",
+      "read_bounded_by_site": {
+        "runtime": {
+          "bytes": 294233,
+          "calls": 703,
+          "distinct_files": 103
+        }
+      },
+      "read_bounded_total": {
+        "bytes": 294233,
+        "calls": 703
+      },
+      "source_passes": {
+        "bytes": 251020,
+        "calls": 7,
+        "detail": [
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          },
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          },
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          },
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          },
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          },
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          },
+          {
+            "bytes": 35860,
+            "files": 100,
+            "root": "inputs"
+          }
+        ],
+        "files": 700
+      },
+      "status": "SUCCEEDED"
+    },
+    "task_inspect": {
+      "measurement_kind": "logical_calls_to_checked_reader; not physical disk I/O",
+      "read_bounded_by_site": {
+        "runtime": {
+          "bytes": 43551,
+          "calls": 4,
+          "distinct_files": 4
+        }
+      },
+      "read_bounded_total": {
+        "bytes": 43551,
+        "calls": 4
+      },
+      "source_passes": {
+        "bytes": 0,
+        "calls": 0,
+        "detail": [],
+        "files": 0
+      }
+    }
+  },
+  "schema_version": "aor.probe-logical-reads.v1"
+}

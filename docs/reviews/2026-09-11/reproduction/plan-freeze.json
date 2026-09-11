@@ -1,0 +1,14 @@
+{
+  "canonical_bytes_changed": true,
+  "conclusion": "PlanSpec is not deep-frozen; existing re-validation rejects the mutated plan. Evidence for REV-003, not an exploited authorization bypass.",
+  "frozen_blocks_attribute_assignment": true,
+  "nested_list_mutation_succeeded": true,
+  "plan_hash_after": "682d92ffd245f60d54c96b4e5b49a64f74a0b714f790de216a8789270f2b1d1b",
+  "plan_hash_before": "72e4dacbf12ec1447e109360e9137cdefcdb6dd3a3171730a8d5546cccc0597f",
+  "plan_hash_changed": true,
+  "preflight_error": "ValidationError",
+  "preflight_rejected": true,
+  "revalidation_error": "ValidationError",
+  "revalidation_rejected": true,
+  "schema_version": "aor.probe-plan-freeze.v1"
+}

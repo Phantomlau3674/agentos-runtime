@@ -1,0 +1,52 @@
+{
+  "conclusion": "per-file partial results cannot be merged without a global ID-arbitration rule; Map/Reduce over raw groups is unsafe",
+  "divergence": {
+    "amount_cny": {
+      "per_file_then_merge": "30.00",
+      "single_pass": "10.00"
+    },
+    "duplicate_error_lost": true
+  },
+  "input_files": {
+    "part_0001.csv": "item_id,category,quantity,unit_price,currency\nitem_x,alpha,2,5.00,CNY\n",
+    "part_0002.csv": "item_id,category,quantity,unit_price,currency\nitem_x,beta,2,10.00,CNY\n"
+  },
+  "per_file_then_merge": {
+    "errors": [],
+    "groups": [
+      {
+        "amount": "10.00",
+        "category": "alpha",
+        "currency": "CNY",
+        "quantity": 2,
+        "rows": 1
+      },
+      {
+        "amount": "20.00",
+        "category": "beta",
+        "currency": "CNY",
+        "quantity": 2,
+        "rows": 1
+      }
+    ]
+  },
+  "schema_version": "aor.counterexample-duplicate-id.v1",
+  "single_pass": {
+    "errors": [
+      {
+        "code": "DUPLICATE_ID",
+        "file": "part_0002.csv",
+        "row": 2
+      }
+    ],
+    "groups": [
+      {
+        "amount": "10.00",
+        "category": "alpha",
+        "currency": "CNY",
+        "quantity": 2,
+        "rows": 1
+      }
+    ]
+  }
+}

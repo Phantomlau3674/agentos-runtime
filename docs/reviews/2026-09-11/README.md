@@ -14,6 +14,7 @@
 | [04_IMPLEMENTATION_BACKLOG.md](04_IMPLEMENTATION_BACKLOG.md) | 20 项补充工作、依赖、交付与反例验收；尚未执行 |
 | [05_EVIDENCE_AND_REPRODUCTION.md](05_EVIDENCE_AND_REPRODUCTION.md) | 两份报告的来源、历史测量、缺失原始材料与复现实验要求 |
 | [证据清单](evidence/manifest.json) | 原报告字节数、SHA-256、Git blob SHA，以及缺失项 |
+| [复现记录](reproduction/REPRODUCTION.md) | REV-001/002：测量脚本、实跑结果与边界（rev-001-002-measurements 分支） |
 
 ## 必须先分清的三件事
 

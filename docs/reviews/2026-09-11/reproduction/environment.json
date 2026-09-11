@@ -1,0 +1,44 @@
+{
+  "dependencies": {
+    "mcp": "2.2.0",
+    "pydantic": "2.13.4",
+    "pydantic-core": "2.46.4",
+    "pytest": "9.0.2"
+  },
+  "engine_fingerprint": "ae97ecb226cca4160d0ad1ab3b11fd67454f6672c62638f9b2bf3b7dedd9370e",
+  "evidence_manifest": "docs/reviews/2026-09-11/evidence/manifest.json",
+  "git": {
+    "branch": "rev-001-002-measurements",
+    "commit": "f2255551023a9ca74f0714a68bc9eb3ace70f6df",
+    "src_tests_dirty": false
+  },
+  "platform": {
+    "machine": "AMD64",
+    "processor": "AMD64 Family 26 Model 112 Stepping 0, AuthenticAMD",
+    "release": "11",
+    "system": "Windows"
+  },
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "recorded_at_utc": "2026-09-11T14:19:30.090280+00:00",
+  "requirements_lock_sha256": "055f1322791c42d99f3900edcf8144c6cb29a076e36dd1a8b01e320ea849dcdb",
+  "schema_version": "aor.repro-env.v1",
+  "scope": "environment record only; not a performance or regression result",
+  "source_sha256": {
+    "__init__.py": "0c4f8af6969e9fba07086743ba2c68bba69d31e6e9b78a5f62b00b9f7117828e",
+    "__main__.py": "482b8693e2fe6dbd732e3d7961e03827d3efa187bad11d29da188be580ebbeea",
+    "cli.py": "cd0c8dce699a9299793bec9603d4396a938079acfb7d1b9b6a6cb4ddc01735b8",
+    "contracts.py": "ee2cc8af55653872b0ab298c45b95b720f562bc8369ed39ba7cea0be4aeafcb8",
+    "demo_app.py": "6de403656cd1e2a19175b402e515f987fb0c77689b81bb36412c3a21ca50357b",
+    "diagnostics.py": "74cab80a480e90916f4e17da312ff6fdee1e517280be857d453d7b4fd7e8ef69",
+    "errors.py": "f0bc268b2668b42a261d130f305f980d68a2efa74a755a2aedd204d85221c44d",
+    "fixtures.py": "ed3ea5d0f2e3a2d48d541c46c20de2cf2617c95281c86d1da68d326e85bd8108",
+    "gateway.py": "c9e86bddcfaccb1864310891891227b0529822c3576fa2d8558e25e59d1dd791",
+    "journal.py": "340aa101dbef6fc310bbc14e68701882ddc19e68221612dd5eca58ec76465401",
+    "locking.py": "c3d9541a5244fec652ed41715b71af3cb93d7c44a446e7564f1ef12906e250ad",
+    "mcp_server.py": "84c37a4c500ec6e1fa305db80e463e70115eacca424519d55d7b310ccce812b1",
+    "runtime.py": "43bd1be956cbeba7fee0c99815724db563fa6b2427215deed0a54ed483882fbb",
+    "storage.py": "dea5bc38ec09601cc858d24ecd809fdce15a7258293d5afb4c9c847c5726290c",
+    "tabular.py": "cd72fd19902aacdf2cb8ed15b2df91c023395f16cafd03f41721fa9e6dc5cc88",
+    "verification.py": "f0282f47451450970e308bbc8aa6c7fccb9120b996e418e0da6d380e14bd6834"
+  }
+}
