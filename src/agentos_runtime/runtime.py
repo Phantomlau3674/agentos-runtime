@@ -13,6 +13,7 @@ from time import perf_counter
 from typing import Callable
 from uuid import uuid4
 
+from .compiler import CompiledPlan, compile_plan
 from .contracts import OPERATIONS, PlanSpec
 from .errors import RuntimeFault
 from .journal import Journal, MAX_ATTEMPTS
@@ -30,8 +31,8 @@ PhaseHook = Callable[[str, Path], None]
 def engine_fingerprint() -> str:
     """Prevent reusing receipts across a changed implementation or verifier."""
     root = Path(__file__).parent
-    names = ('runtime.py', 'contracts.py', 'storage.py', 'journal.py', 'locking.py',
-             'tabular.py', 'verification.py')
+    names = ('runtime.py', 'contracts.py', 'compiler.py', 'storage.py', 'journal.py',
+             'locking.py', 'tabular.py', 'verification.py')
     return digest(b''.join(name.encode() + (root / name).read_bytes() for name in names))
 
 
@@ -48,14 +49,14 @@ class Policy:
             raise RuntimeFault('POLICY_DENIED', '该动作未获得本地所有者授权。')
 
 
-def _preflight(plan: PlanSpec, input_root: Path, workspace: Path, policy: Policy) -> tuple[PlanSpec, Path, Path]:
-    plan = PlanSpec.model_validate_json(plan.model_dump_json())
-    for node in plan.nodes:
+def _preflight(plan: PlanSpec, input_root: Path, workspace: Path, policy: Policy) -> tuple[CompiledPlan, Path, Path]:
+    compiled = compile_plan(plan)
+    for node in compiled.nodes:
         policy.check(node.operation)
     input_root, workspace = checked_path(input_root), checked_path(workspace)
     if workspace == input_root or input_root in workspace.parents or workspace in input_root.parents:
         raise RuntimeFault('WORKSPACE_OVERLAP', '输入目录和工作区必须分离。')
-    return plan, input_root, workspace
+    return compiled, input_root, workspace
 
 
 def _directory_names(root: Path, allowed: set | frozenset) -> set[str]:
@@ -99,7 +100,7 @@ class Runtime:
             journal = Journal(workspace / 'journal.sqlite3')
             try:
                 run_id = str(uuid4())
-                new_file(workspace / 'plan.json', plan.canonical_bytes())
+                new_file(workspace / 'plan.json', plan.canonical_bytes)
                 sync_directory(workspace)
                 journal.create(run_id, plan.plan_hash, engine=engine_fingerprint(),
                                oracle_hash=digest(json_bytes(oracle)), input_binding=digest(str(input_root).encode()))
@@ -157,7 +158,7 @@ class Runtime:
                 journal.close()
 
     @staticmethod
-    def _read_sources(root: Path, plan: PlanSpec, check: Callable[[], None] = lambda: None) -> dict[str, bytes]:
+    def _read_sources(root: Path, plan: CompiledPlan, check: Callable[[], None] = lambda: None) -> dict[str, bytes]:
         remaining, source = plan.limits.max_input_bytes, {}
         for path in input_paths(root, plan.limits.max_files):
             check()
@@ -167,10 +168,10 @@ class Runtime:
         return source
 
     @classmethod
-    def _current_hashes(cls, root: Path, plan: PlanSpec) -> dict[str, str]:
+    def _current_hashes(cls, root: Path, plan: CompiledPlan) -> dict[str, str]:
         return {n: digest(b) for n, b in cls._read_sources(root, plan).items()}
 
-    def _execute(self, plan: PlanSpec, input_root: Path, workspace: Path, oracle: dict,
+    def _execute(self, plan: CompiledPlan, input_root: Path, workspace: Path, oracle: dict,
                  policy: Policy, journal: Journal, *, resumed: bool,
                  after_node: PhaseHook | None, phase_hook: PhaseHook | None) -> dict:
         started = perf_counter()
