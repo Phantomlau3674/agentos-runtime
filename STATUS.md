@@ -19,6 +19,7 @@
 - 同分支：REV-006 编译边界收敛为 compile_canonical（持久化字节只解析一次、必须规范字节否则 PLAN_NONCANONICAL）；消除了 resume 的重复 dump/parse。本机完整套件 229 通过、5 跳过。
 - 同分支：REV-008 输入一致性合同固化为快照语义（ADR 0013）：快照后修改/删除/新增/同路径换目录的行为均已定义并有测试；快照字节独立于源目录存活。
 - 同分支：REV-012 受限 IR 显式化（ADR 0014）：CompiledPlan 携带 ir_version='aor.ir.v0.1'，事件 node 字段映射回 IR 节点；解释器仍为 _execute 数据驱动分派，无 eval/任意节点。
+- 同分支：REV-013 plan_explain 只读工具（ADR 0015）：编译+逐节点声明+权限预判，零副作用；优化 pass 在固定四节点 IR 下无合法对象，未实现。工具 12 个。
 
 ## 仍未完成
 

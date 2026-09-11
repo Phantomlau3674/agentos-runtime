@@ -38,7 +38,7 @@ def count_tasks(home):
 def test_tools_contract_and_default_plan(tmp_path):
     _,g=setup(tmp_path)
     tools=g.tools()
-    assert len(tools)==11
+    assert len(tools)==12
     assert all(t['inputSchema']['additionalProperties'] is False for t in tools)
     assert all('approve' not in t['name'] and 'shell' not in t['name'] for t in tools)
     info=g.call('runtime_capabilities',{})['data']
@@ -237,7 +237,7 @@ def test_actual_cli_agent_round_trip_and_restart(tmp_path):
     assert result.returncode==0,result.stderr
     listed=cli(['tools','--home',str(home)])
     assert listed.returncode==0,listed.stderr
-    assert len(json.loads(listed.stdout)['tools'])==11
+    assert len(json.loads(listed.stdout)['tools'])==12
     call={'tool':'task_submit','arguments':{'dataset_id':'demo','request_id':'same'}}
     response=cli(['tool','--home',str(home)],json.dumps(call))
     assert response.returncode==0,response.stderr
@@ -263,7 +263,7 @@ def test_cli_tools_utf8_when_stdio_is_legacy_codepage(tmp_path):
                           capture_output=True,env=env,timeout=15)
     assert listed.returncode==0,listed.stderr
     data=json.loads(listed.stdout.decode('utf-8'))
-    assert len(data['tools'])==11
+    assert len(data['tools'])==12
     assert '查询' in data['tools'][0]['description']
 
 

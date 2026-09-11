@@ -15,7 +15,8 @@ from uuid import uuid4
 
 from pydantic import Field, ValidationError
 
-from .actions import ACTION_CONTRACTS
+from .actions import ACTION_CONTRACTS, action_contract
+from .compiler import compile_plan
 from .contracts import OPERATIONS, PlanSpec, StrictModel, default_plan
 from .errors import RuntimeFault
 from .fixtures import generate
@@ -61,6 +62,10 @@ class EventArguments(TaskArguments):
     limit: Annotated[int, Field(ge=1, le=100)] = 20
 
 
+class ExplainArguments(StrictModel):
+    plan: dict | None = None
+
+
 class OpenArguments(TaskArguments):
     artifact_id: ARTIFACT_ID
 
@@ -80,7 +85,7 @@ TOOL_TYPES = {
     'task_resume': TaskArguments, 'task_cancel': TaskArguments,
     'artifact_read': ArtifactArguments, 'task_events': EventArguments,
     'artifact_open': OpenArguments, 'artifact_session_read': SessionReadArguments,
-    'artifact_session_close': SessionArguments,
+    'artifact_session_close': SessionArguments, 'plan_explain': ExplainArguments,
 }
 DESCRIPTIONS = {
     'runtime_capabilities': '查询已实现的固定合成任务、计划契约和限制；不支持任意主机代码。',
@@ -93,6 +98,7 @@ DESCRIPTIONS = {
     'artifact_open': '核验指定产物版本并建立分页读取会话；会话绑定打开时已验证的内容快照。',
     'artifact_session_read': '在已打开会话内按字符偏移读取快照文本；不再触碰磁盘。',
     'artifact_session_close': '关闭读取会话并释放其快照占用的内存。',
+    'plan_explain': '编译并解释计划：返回 IR、动作声明、限额与权限预判；不产生任何副作用。',
     'task_events': '分页查询指定任务的动作记录，便于原 Agent 继续会话。',
 }
 
@@ -514,6 +520,28 @@ class AgentGateway:
         if self._sessions.pop(args.session_id, None) is None:
             raise RuntimeFault('SESSION_NOT_FOUND', '读取会话不存在或已关闭。')
         return {'session_id': args.session_id, 'closed': True}
+
+    def plan_explain(self, plan: dict | None = None) -> dict:
+        """Compile and explain a plan without executing it: IR, declared
+        read/write/effect sets per node, limits, contract, and whether each
+        node would pass the owner policy. Pure analysis, no side effects."""
+        args = ExplainArguments(plan=plan)
+        spec = PlanSpec.model_validate(args.plan) if args.plan is not None else default_plan()
+        compiled = compile_plan(spec)
+        allowed = self.owner_policy().allowed_operations
+        scope = compiled.contract.allowed_operations if compiled.contract else None
+        nodes = []
+        for node in compiled.nodes:
+            declared = action_contract(node.operation)
+            nodes.append({'id': node.id, 'operation': node.operation,
+                          'depends_on': list(node.depends_on), 'effect': declared.effect,
+                          'reads': list(declared.reads), 'writes': list(declared.writes),
+                          'owner_policy': node.operation in allowed,
+                          'contract_scope': (None if scope is None else node.operation in scope)})
+        return {'valid': True, 'ir_version': compiled.ir_version, 'plan_hash': compiled.plan_hash,
+                'limits': compiled.limits.model_dump(),
+                'contract': compiled.contract.model_dump(mode='json') if compiled.contract else None,
+                'nodes': nodes, 'side_effects': 'none; explain never executes'}
 
     def task_events(self, task_id: str, after_seq: int = 0, limit: int = 20) -> dict:
         args = EventArguments(task_id=task_id, after_seq=after_seq, limit=limit)

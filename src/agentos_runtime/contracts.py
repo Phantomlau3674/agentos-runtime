@@ -5,7 +5,7 @@ import hashlib
 import json
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, model_validator
 
 Operation = Literal["inputs.snapshot", "tabular.aggregate", "artifacts.export", "verification.fixture"]
 OPERATIONS = ("inputs.snapshot", "tabular.aggregate", "artifacts.export", "verification.fixture")
@@ -29,6 +29,11 @@ class ActionSpec(StrictModel):
     depends_on: list[str] = Field(default_factory=list, max_length=3)
 
 
+def _as_tuple(value):
+    """Wire JSON uses arrays; the validated contract stores immutable tuples."""
+    return tuple(value) if isinstance(value, list) else value
+
+
 class GoalContract(StrictModel):
     """Owner-declared success conditions attached to a plan (REV-009).
 
@@ -39,12 +44,12 @@ class GoalContract(StrictModel):
 
     schema_version: Literal["aor.goal-contract.v0.1"] = "aor.goal-contract.v0.1"
     goal: Annotated[str, Field(min_length=1, max_length=1000)]
-    invariants: tuple[str, ...] = ()
+    invariants: Annotated[tuple[str, ...], BeforeValidator(_as_tuple)] = ()
     # Narrows the owner policy for this plan only; never widens it.
-    allowed_operations: tuple[Operation, ...] | None = None
+    allowed_operations: Annotated[tuple[Operation, ...] | None, BeforeValidator(_as_tuple)] = None
     acceptance: Annotated[str, Field(min_length=1, max_length=64)] = "fixture_integer_cents.v0.1"
-    unresolved: tuple[str, ...] = ()
-    human_judgment: tuple[str, ...] = ()
+    unresolved: Annotated[tuple[str, ...], BeforeValidator(_as_tuple)] = ()
+    human_judgment: Annotated[tuple[str, ...], BeforeValidator(_as_tuple)] = ()
 
 
 class PlanSpec(StrictModel):

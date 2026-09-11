@@ -26,6 +26,7 @@ EXPECTED_TOOLS = {
     'runtime_capabilities', 'datasets_list', 'task_submit', 'task_inspect',
     'task_resume', 'task_cancel', 'artifact_read', 'task_events',
     'artifact_open', 'artifact_session_read', 'artifact_session_close',
+    'plan_explain',
 }
 SRC = Path(__file__).resolve().parents[1] / 'src'
 
@@ -56,7 +57,7 @@ def test_mcp_initialize_list_and_call_round_trip(tmp_path):
                 assert init.server_info.name == 'agentos-runtime-mcp'
 
                 listed = await session.list_tools()
-                assert len(listed.tools) == 11
+                assert len(listed.tools) == 12
                 assert {t.name for t in listed.tools} == EXPECTED_TOOLS
                 gateway_schemas = {t['name']: t['inputSchema'] for t in AgentGateway(home).tools()}
                 for tool in listed.tools:
