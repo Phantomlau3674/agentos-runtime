@@ -27,6 +27,10 @@ jobs:
         shell: bash
         run: |
           tar -xJf /tmp/source.tar.xz -C .
+          # Workflow files are written through the authenticated GitHub connector.
+          # Keep the checked-in workflow versions unchanged so the Actions token
+          # only commits normal source files and documentation.
+          git checkout HEAD -- .github/workflows/import-source.yml .github/workflows/ci.yml
 
       - name: Commit imported source
         shell: bash
