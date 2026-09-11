@@ -1,0 +1,42 @@
+{
+  "schema_version": "aor.review-evidence.v1",
+  "date": "2026-09-11",
+  "base_commit": "76d73de110436ed907fdb141e6f44d239ed137b5",
+  "scope": "discussion synthesis and historical review preservation only",
+  "implementation_changed": false,
+  "experiments_rerun_in_this_upload": false,
+  "original_reports": [
+    {
+      "original_name": "agentos-architecture-review-2026-09-11.md",
+      "stored_path": "architecture-review.original.md.txt",
+      "bytes": 3286,
+      "sha256": "8e61b522ee2b49e4cd51026f8da05764b0691005615d4def16647c9d72d8822c",
+      "git_blob_sha1": "8cdc3e834d4d606ec9df72e3dbb0369e577ef388",
+      "status": "preserved_byte_for_byte",
+      "reported_source": "v0.0.2 cloud archive"
+    },
+    {
+      "original_name": "agentos-code-review-2026-09-11/REVIEW.md",
+      "stored_path": "code-review.original.md.txt",
+      "bytes": 5070,
+      "sha256": "aac8a3f999f36d6df7d298a60a8d7987e8af494b5340a399e6de6b09c098b94a",
+      "git_blob_sha1": "c8e97bcdf1a32fd8881b815784f94957598727ec",
+      "status": "preserved_byte_for_byte",
+      "reported_source_commit": "76d73de110436ed907fdb141e6f44d239ed137b5"
+    }
+  ],
+  "missing_original_materials": [
+    "agentos-architecture-audit.json",
+    "probe.py",
+    "probe-results.json",
+    "candidate implementation source files referenced but not named in report",
+    "experimental src copy referenced by code review"
+  ],
+  "missing_status": "not recovered from mounted conversation artifacts or current-conversation search; not fabricated or substituted",
+  "limitations": [
+    "Historical report summaries are not raw measurements.",
+    "No complete latest-main regression in this upload.",
+    "No live-model, Windows, browser or native-compiler performance claim.",
+    "New task IDs are proposals, not completed work or GitHub Issue IDs."
+  ]
+}
