@@ -32,6 +32,7 @@ class CompiledPlan:
     so loading from another process always re-validates.
     """
 
+    ir_version: str
     schema_version: str
     goal: str
     nodes: tuple[CompiledNode, ...]
@@ -78,7 +79,8 @@ def compile_canonical(data: bytes) -> CompiledPlan:
         if node.depends_on != expected or any(dep not in ids for dep in node.depends_on):
             raise RuntimeFault('PLAN_INVALID', '已编译计划的依赖关系不合法。')
     canonical = detached.canonical_bytes()
-    return CompiledPlan(schema_version=detached.schema_version, goal=detached.goal,
+    return CompiledPlan(ir_version='aor.ir.v0.1', schema_version=detached.schema_version,
+                        goal=detached.goal,
                         nodes=nodes, limits=detached.limits,
                         contract=detached.goal_contract,
                         canonical_bytes=canonical,

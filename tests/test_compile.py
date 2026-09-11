@@ -83,6 +83,22 @@ def test_run_and_resume_recompile_and_revalidate(tmp_path):
     assert again["status"] == "SUCCEEDED" and again["plan_hash"] == compiled.plan_hash
 
 
+def test_ir_is_versioned_and_events_map_to_source_nodes(tmp_path):
+    compiled = compile_plan(default_plan())
+    assert compiled.ir_version == "aor.ir.v0.1"
+    oracle = generate(tmp_path / "fx", 2, 2, seed=3)
+    workspace = tmp_path / "ws"
+    Runtime().run(default_plan(), tmp_path / "fx" / "inputs", workspace, oracle)
+    import sqlite3
+    conn = sqlite3.connect(workspace / "journal.sqlite3")
+    try:
+        nodes = {json.loads(p)["node"] for (p,) in conn.execute(
+            "SELECT payload FROM events WHERE payload LIKE '%\"node%'")}
+    finally:
+        conn.close()
+    assert nodes == {node.id for node in compiled.nodes}
+
+
 def test_canonical_bytes_compile_path_agrees_with_wire_path():
     plan = default_plan()
     via_wire = compile_plan(plan)
