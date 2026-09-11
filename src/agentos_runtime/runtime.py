@@ -132,6 +132,8 @@ class Runtime:
             try:
                 state = journal.load()
                 if plan.plan_hash != state['plan_hash'] or (expected_plan_hash is not None and plan.plan_hash != expected_plan_hash):
+                    journal.event(state['id'], 'audit.plan_changed',
+                                  {'stored': state['plan_hash'], 'presented': plan.plan_hash})
                     raise RuntimeFault('PLAN_CHANGED', '计划版本已变化，不能继续旧任务。')
                 if state['engine'] != engine_fingerprint():
                     raise RuntimeFault('ENGINE_CHANGED', '执行器或核验器版本变化，不能沿用旧回执。')

@@ -13,6 +13,7 @@
 - 同分支：REV-004 产物版本绑定读取会话已实现（artifact_open/session_read/session_close，ADR 0009），工具增至 11 个并自动进入 MCP；会话为进程内已验证快照，非实时磁盘检查。9 项会话测试通过，本机完整套件 204 通过、5 跳过。
 - 同分支：REV-007 MCP 传输层执行/控制通道分离（ToolLanes：submit/resume 2 槽+4 等待，控制 8 槽+32 等待，超限返回 QUEUE_FULL）；RPC 取消只停止等待，业务取消仍是 task_cancel。3 项通道测试通过，本机完整套件 207 通过、5 跳过。
 - 同分支：REV-009 目标合同 GoalContract 与验收绑定（ADR 0010）：合同只能收窄授权、acceptance 绑定核验器版本、记录含合同/引擎/输入版本与未决项；无合同计划 plan_hash 不变。6 项合同测试通过，本机完整套件 213 通过、5 跳过。
+- 同分支：REV-010 观察出处与陈旧状态（ADR 0011）：task_inspect 各路径返回 observation 块（核验方式/结果绑定/stale）；输入漂移后 stale=true，依据缺失 stale='unknown'；幂等冲突与计划漂移写审计事件。6 项观察测试通过，本机完整套件 219 通过、5 跳过。
 
 ## 仍未完成
 

@@ -21,8 +21,8 @@ from .fixtures import generate
 from .journal import Journal
 from .locking import workspace_lock
 from .runtime import Policy, Runtime, _validate_artifacts
-from .storage import (atomic_json, checked_path, database_path, digest, json_bytes, new_file,
-                      read_bounded, sync_directory)
+from .storage import (atomic_json, checked_path, database_path, digest, input_paths, json_bytes,
+                      new_file, read_bounded, sync_directory)
 
 ID = Annotated[str, Field(pattern=r'^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$')]
 TASK_ID = Annotated[str, Field(pattern=r'^[0-9a-f]{32}$')]
@@ -250,6 +250,8 @@ class AgentGateway:
             previous = conn.execute('SELECT * FROM tasks WHERE request_id=?', (request_id,)).fetchone()
             if previous is not None:
                 if previous['request_hash'] != request_hash:
+                    self._audit(previous['task_id'], 'audit.idempotent_conflict',
+                                {'request_id': request_id})
                     raise RuntimeFault('IDEMPOTENCY_CONFLICT', '相同 request_id 对应不同参数，不能创建第二个任务。')
                 task_id = previous['task_id']
                 conn.rollback()
@@ -289,11 +291,15 @@ class AgentGateway:
         if not workspace.exists():
             return {'task_id': task_id, 'status': 'CANCELLED' if task['cancelled'] else 'RESERVED',
                     'artifacts': [], 'execution_active': active,
-                    'needs_recovery': not active and not bool(task['cancelled'])}
+                    'needs_recovery': not active and not bool(task['cancelled']),
+                    'observation': {'artifact_check': 'not_performed', 'stale': 'not_applicable',
+                                    'result_binding': 'not_created'}}
         if not (workspace / 'journal.sqlite3').exists():
             return {'task_id': task_id, 'status': 'INITIALIZING' if active else 'INITIALIZATION_INCOMPLETE',
                     'artifacts': [], 'execution_active': active, 'needs_recovery': False,
-                    'next_action': 'wait_for_worker' if active else 'owner_diagnosis'}
+                    'next_action': 'wait_for_worker' if active else 'owner_diagnosis',
+                    'observation': {'artifact_check': 'not_performed', 'stale': 'not_applicable',
+                                    'result_binding': 'not_created'}}
         journal = None
         try:
             journal = Journal(workspace / 'journal.sqlite3', create=False)
@@ -317,6 +323,17 @@ class AgentGateway:
                     data['artifacts'] = [{'artifact_id': self._artifact_id(task_id, name, info['sha256']),
                                           'name': name, 'sha256': info['sha256'], 'bytes': info['bytes']}
                                          for name, info in record['artifacts'].items()]
+                    data['observation'] = {'artifact_check': 'full_revalidation_at_this_call',
+                                           'result_binding': 'historical_result_for_recorded_input_version',
+                                           'stale': self._staleness(task, receipts)}
+                else:
+                    data['observation'] = {'artifact_check': 'not_performed',
+                                           'result_binding': 'historical_record',
+                                           'stale': 'not_applicable'}
+            else:
+                data['observation'] = {'artifact_check': 'not_performed',
+                                       'result_binding': 'no_record_yet',
+                                       'stale': 'not_applicable'}
             return data
         except RuntimeFault as exc:
             if active and exc.code in {'JOURNAL_VERSION', 'JOURNAL_INCOMPLETE'}:
@@ -326,6 +343,38 @@ class AgentGateway:
         finally:
             if journal is not None:
                 journal.close()
+
+    def _audit(self, task_id: str, kind: str, payload: dict) -> None:
+        """Append an audit event to a task's journal; best-effort because a
+        RESERVED task may not have a journal yet."""
+        try:
+            journal = Journal(self._workspace(task_id) / 'journal.sqlite3', create=False)
+            try:
+                state = journal.load()
+                journal.event(state['id'], kind, payload)
+            finally:
+                journal.close()
+        except (RuntimeFault, OSError, sqlite3.Error):
+            pass
+
+    def _staleness(self, task: dict, receipts: dict) -> bool | str:
+        """Compare the bound dataset's current input hashes with the snapshot
+        receipt's recorded hashes. 'unknown' when the basis is unavailable."""
+        snapshot = receipts.get('snapshot')
+        dataset_id = task.get('dataset_id')
+        if snapshot is None or dataset_id not in self._datasets():
+            return 'unknown'
+        try:
+            plan = PlanSpec.model_validate_json(task['plan'])
+            root = checked_path(self.home / 'fixtures' / dataset_id)
+            blobs, remaining = {}, plan.limits.max_input_bytes
+            for path in input_paths(root / 'inputs', plan.limits.max_files):
+                blob = read_bounded(path, remaining)
+                remaining -= len(blob)
+                blobs[path.name] = blob
+            return {n: digest(b) for n, b in blobs.items()} != snapshot['hashes']
+        except (RuntimeFault, OSError, ValueError):
+            return 'unknown'
 
     @staticmethod
     def _artifact_id(task_id: str, name: str, sha256: str) -> str:
