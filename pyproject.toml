@@ -12,9 +12,11 @@ dependencies = ["pydantic==2.13.4"]
 
 [project.optional-dependencies]
 dev = ["pytest==9.0.2"]
+mcp = ["mcp==2.2.0"]
 
 [project.scripts]
 agentos = "agentos_runtime.cli:main"
+agentos-mcp = "agentos_runtime.mcp_server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
