@@ -16,7 +16,27 @@ from .tabular import aggregate, summary_csv
 from .verification import verify
 
 
+def _force_utf8_stdio() -> None:
+    """JSON CLI output is UTF-8. English Windows stdio is often cp1252 and strict.
+
+    Tool descriptions and fault messages contain Chinese. Printing them with
+    the locale encoding raises UnicodeEncodeError, which subclasses ValueError
+    and was reported as CONFIG_OR_IO_ERROR with empty stdout. stderr can still
+    emit a rejection because its error handler is backslashreplace. This is the
+    GitHub windows-latest failure mode; UTF-8 mode on the developer machine hid it.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(encoding="utf-8")
+        except (OSError, ValueError, AttributeError):
+            continue
+
+
 def main(argv: list[str] | None = None) -> int:
+    _force_utf8_stdio()
     parser = argparse.ArgumentParser(description="AgentOS Runtime 离线合成任务验证；不调用模型或互联网。")
     sub = parser.add_subparsers(dest="command", required=True)
     demo = sub.add_parser("demo", help="在新目录生成合成数据并完成核验")
