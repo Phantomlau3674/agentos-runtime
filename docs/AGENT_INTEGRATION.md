@@ -1,6 +1,14 @@
 # Agent 集成与能力保留
 
-日期：2026-09-11。状态：能力保留要求仍待真实客户端验收；v0.0.2 已实现传输无关网关与 CLI 协议测试，详见 TOOL_GATEWAY.md。没有 MCP 或真实模型联调结果。
+日期：2026-09-11。状态：能力保留要求仍待真实客户端验收；v0.0.2 已实现传输无关网关与 CLI 协议测试，详见 TOOL_GATEWAY.md。**没有真实模型联调结果。**
+
+已脚本化验证（`tests/test_handoff.py`，协议级不是真实 Agent）：
+
+- 跨进程交接：进程 A 提交后，进程 B 仅凭 `task_id` 即可 `task_inspect`（含 observation 出处/stale）、分页 `task_events`（含 `operation_intent` 的 effect 声明与 audit 事件）、`artifact_open`/`artifact_read` 读取已验证产物。
+- 中断续接：另一 Runtime 实例对崩溃点执行 reconcile 并完成恢复（`reconciled_nodes` 可见）。
+- MCP stdio：`artifact_open`/`artifact_session_read`/`artifact_session_close` 经真实 SDK 子进程跑通；CLI 单进程退出后会话按设计失效（`SESSION_NOT_FOUND`），调用方回退一次性 `artifact_read` 或重新 open。
+
+未验证：真实 Agent 客户端能力回归（上表全部条目）、跨供应商会话状态迁移、事件驱动的自动唤醒（当前仍需调用方轮询 `task_events`/`task_inspect`）。
 
 ## 接入原则
 
