@@ -12,6 +12,8 @@ import time
 
 import pytest
 
+from conftest import kill_process_tree
+
 from agentos_runtime.contracts import default_plan
 from agentos_runtime.errors import RuntimeFault
 from agentos_runtime.fixtures import generate
@@ -124,8 +126,8 @@ def test_changed_bindings_block(tmp_path, kind, code):
     root, oracle, workspace = crash_run(tmp_path)
     input_root = root / 'inputs'
     if kind == 'plan':
-        plan = json.loads((workspace/'plan.json').read_text()); plan['goal'] = 'changed'
-        (workspace/'plan.json').write_text(json.dumps(plan))
+        plan = json.loads((workspace/'plan.json').read_text(encoding='utf-8')); plan['goal'] = 'changed'
+        (workspace/'plan.json').write_text(json.dumps(plan), encoding='utf-8')
     elif kind == 'oracle': oracle['total_rows'] += 1
     elif kind == 'engine':
         with closing(sqlite3.connect(workspace/'journal.sqlite3')) as conn, conn:
@@ -279,11 +281,10 @@ Runtime().run(default_plan(),root/'inputs',work,json.loads((root/'oracle.json').
         with pytest.raises(RuntimeFault) as exc:
             Runtime().resume(workspace,root/'inputs',oracle)
         assert exc.value.code == 'WORKSPACE_BUSY'
-        process.kill(); process.wait(timeout=5)
+        kill_process_tree(process)
         assert_recovered(root,oracle,workspace)
     finally:
-        if process.poll() is None:
-            process.kill(); process.wait(timeout=5)
+        kill_process_tree(process)
 
 
 def test_cancel_before_publish_keeps_staging(tmp_path):
@@ -330,10 +331,10 @@ Runtime().resume(work,root/'inputs',json.loads((root/'oracle.json').read_text())
         with pytest.raises(RuntimeFault) as exc:
             Runtime().resume(workspace,root/'inputs',oracle)
         assert exc.value.code=='WORKSPACE_BUSY'
-        proc.kill(); proc.wait(timeout=5)
+        kill_process_tree(proc)
         assert_recovered(root,oracle,workspace)
     finally:
-        if proc.poll() is None: proc.kill(); proc.wait(timeout=5)
+        kill_process_tree(proc)
 
 
 def test_input_path_binding_is_explicit_even_for_identical_bytes(tmp_path):

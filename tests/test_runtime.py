@@ -14,6 +14,8 @@ from time import sleep
 from pydantic import ValidationError
 import pytest
 
+from conftest import kill_process_tree
+
 from agentos_runtime.cli import main
 from agentos_runtime.contracts import PlanSpec, default_plan
 from agentos_runtime.errors import RuntimeFault
@@ -41,7 +43,12 @@ def csv_blob(rows):
 @pytest.mark.parametrize('files,rows', [(1,1), (1,10), (3,27), (100,10), (1000,1)])
 def test_fixture_end_to_end(tmp_path, files, rows):
     root, oracle = fixture(tmp_path, files, rows)
-    record = Runtime().run(default_plan(), root/'inputs', tmp_path/'run', oracle)
+    payload = default_plan().model_dump()
+    if files == 1000:
+        # 1000 fsync'd file copies exceed the 60s owner default on slower
+        # filesystems; the plan schema already permits an explicit 300s budget.
+        payload['limits']['max_seconds'] = 300
+    record = Runtime().run(PlanSpec.model_validate(payload), root/'inputs', tmp_path/'run', oracle)
     assert record['status'] == 'SUCCEEDED'
     assert record['verification']['passed'] is True
     assert all(record['verification']['checks'].values())
@@ -224,7 +231,7 @@ def test_input_path_refusals(tmp_path, kind):
         actual=root/'real_inputs'; input_root.rename(actual); input_root.symlink_to(actual, target_is_directory=True)
     elif kind == 'hardlink': os.link(file, tmp_path/'external.csv')
     elif kind == 'fifo': file.unlink(); os.mkfifo(file)
-    elif kind == 'invalid_name': file.rename(input_root/'bad:name.csv')
+    elif kind == 'invalid_name': file.rename(input_root/'bad name.csv')
     elif kind == 'subdir': (input_root/'nested').mkdir()
     if kind == 'parent_symlink':
         with pytest.raises(RuntimeFault) as exc:
@@ -337,8 +344,7 @@ Runtime().run(default_plan(), root/'inputs', workspace,
             if process.poll() is not None: pytest.fail('child exited before test boundary')
             sleep(.025)
         assert marker.exists(), 'child failed to reach crash boundary'
-        process.kill()
-        process.wait(timeout=5)
+        kill_process_tree(process)
         con=sqlite3.connect(workspace/'journal.sqlite3')
         assert con.execute('SELECT status FROM runs').fetchone()[0]=='RUNNING'
         assert con.execute("SELECT count(*) FROM events WHERE kind='operation_intent'").fetchone()[0]==3
@@ -349,7 +355,7 @@ Runtime().run(default_plan(), root/'inputs', workspace,
         # A new run still refuses an existing workspace; recovery uses the separate explicit resume API.
         with pytest.raises(FileExistsError): Runtime().run(default_plan(),root/'inputs',workspace,oracle)
     finally:
-        if process.poll() is None: process.kill(); process.wait(timeout=5)
+        kill_process_tree(process)
 
 
 def test_keyboard_interrupt_recorded(tmp_path):

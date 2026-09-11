@@ -252,7 +252,8 @@ def test_actual_cli_agent_round_trip_and_restart(tmp_path):
     assert count_tasks(home)==1
 
 
-@pytest.mark.parametrize('payload', ['not-json', '{"tool":"datasets_list","arguments":{},"approved":true}', 'x'*65537])
+@pytest.mark.parametrize('payload', ['not-json', '{"tool":"datasets_list","arguments":{},"approved":true}', 'x'*65537],
+                         ids=['not-json', 'extra-field', 'oversized'])
 def test_cli_rejects_malformed_or_oversized_request(tmp_path,payload):
     home,_=setup(tmp_path)
     response=cli(['tool','--home',str(home)],payload)
