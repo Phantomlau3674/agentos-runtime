@@ -15,6 +15,7 @@ from uuid import uuid4
 
 from pydantic import Field, ValidationError
 
+from .actions import ACTION_CONTRACTS
 from .contracts import OPERATIONS, PlanSpec, StrictModel, default_plan
 from .errors import RuntimeFault
 from .fixtures import generate
@@ -222,6 +223,10 @@ class AgentGateway:
         return {'schema_version': 'aor.tools.v0.1', 'scope': 'synthetic_fixture_only',
                 'execution': 'synchronous; no autonomous background worker',
                 'default_plan': default_plan().model_dump(), 'plan_schema': PlanSpec.model_json_schema(),
+                'action_contracts': [{'operation': c.operation, 'reads': list(c.reads),
+                                      'writes': list(c.writes), 'effect': c.effect,
+                                      'summary': c.summary}
+                                     for c in ACTION_CONTRACTS.values()],
                 'features': ['idempotent_submission', 'explicit_recovery', 'artifact_references',
                              'event_pagination', 'artifact_read_sessions'],
                 'not_supported': ['arbitrary_host_code', 'live_accounts', 'browser_actions', 'automatic_approval'],

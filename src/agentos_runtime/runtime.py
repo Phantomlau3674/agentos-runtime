@@ -13,6 +13,7 @@ from time import perf_counter
 from typing import Callable
 from uuid import uuid4
 
+from .actions import action_contract
 from .compiler import CompiledPlan, compile_plan
 from .contracts import OPERATIONS, PlanSpec
 from .errors import RuntimeFault
@@ -31,8 +32,8 @@ PhaseHook = Callable[[str, Path], None]
 def engine_fingerprint() -> str:
     """Prevent reusing receipts across a changed implementation or verifier."""
     root = Path(__file__).parent
-    names = ('runtime.py', 'contracts.py', 'compiler.py', 'storage.py', 'journal.py',
-             'locking.py', 'tabular.py', 'verification.py')
+    names = ('runtime.py', 'contracts.py', 'compiler.py', 'actions.py', 'storage.py',
+             'journal.py', 'locking.py', 'tabular.py', 'verification.py')
     return digest(b''.join(name.encode() + (root / name).read_bytes() for name in names))
 
 
@@ -56,6 +57,7 @@ def _preflight(plan: PlanSpec, input_root: Path, workspace: Path, policy: Policy
         if scope is not None and node.operation not in scope:
             raise RuntimeFault('CONTRACT_DENIED', '该动作超出本计划目标合同的授权范围。')
         policy.check(node.operation)
+        action_contract(node.operation)
     input_root, workspace = checked_path(input_root), checked_path(workspace)
     if workspace == input_root or input_root in workspace.parents or workspace in input_root.parents:
         raise RuntimeFault('WORKSPACE_OVERLAP', '输入目录和工作区必须分离。')
@@ -267,7 +269,8 @@ class Runtime:
                     journal.event(run_id, 'operation_reconciling', {'node': node.id, 'operation_id': operation_id})
                 else:
                     journal.event(run_id, 'operation_intent', {'node': node.id, 'operation': node.operation,
-                                                              'operation_id': operation_id})
+                                                              'operation_id': operation_id,
+                                                              'effect': action_contract(node.operation).effect})
                 hook(f'intent:{node.id}')
                 if node.operation == 'inputs.snapshot':
                     blobs = self._read_sources(input_root, plan, check_budget)
