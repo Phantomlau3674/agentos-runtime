@@ -70,6 +70,32 @@ def test_successful_contract_binds_input_and_verifier(tmp_path):
     assert record["verification"]["unchecked"]
 
 
+def test_contract_fields_cannot_be_silently_dropped():
+    """REV-017: any contract field, including 'soft' ones like unresolved and
+    human_judgment, is part of the canonical bytes -> plan_hash. Compression or
+    rewriting that drops a prohibition invalidates the plan."""
+    a = plan_with_contract()
+    b = plan_with_contract(unresolved=())
+    c = plan_with_contract(allowed_operations=("inputs.snapshot",))
+    assert len({a.plan_hash, b.plan_hash, c.plan_hash}) == 3
+    # canonical bytes literally contain the prohibition text
+    assert b"inputs.snapshot" in plan_with_contract(
+        allowed_operations=("inputs.snapshot",)).canonical_bytes()
+
+
+def test_superseded_goal_invalidates_old_plan(tmp_path):
+    """Owner replaces the goal contract -> old plan_hash cannot resume."""
+    oracle = generate(tmp_path / "fx", 2, 2, seed=3)
+    workspace = tmp_path / "ws"
+    old = plan_with_contract()
+    Runtime().run(old, tmp_path / "fx" / "inputs", workspace, oracle)
+    new = plan_with_contract(goal="v2 目标")
+    with pytest.raises(RuntimeFault) as exc:
+        Runtime().resume(workspace, tmp_path / "fx" / "inputs", oracle,
+                         expected_plan_hash=new.plan_hash)
+    assert exc.value.code == "PLAN_CHANGED"
+
+
 def test_wrong_result_never_delivered_even_if_tools_succeed(tmp_path):
     """A wrong oracle means the executed artifacts fail verification; the run
     still reports FAILED rather than letting tool-level success ship it."""
