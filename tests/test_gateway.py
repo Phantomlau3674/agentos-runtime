@@ -228,7 +228,7 @@ def test_errors_do_not_leak_exception_text(tmp_path,monkeypatch):
 def cli(args,input_data=None):
     env=dict(os.environ,PYTHONPATH=str(Path(__file__).resolve().parents[1]/'src'))
     return subprocess.run([sys.executable,'-m','agentos_runtime',*args],input=input_data,
-                          capture_output=True,text=True,env=env,timeout=15)
+                          capture_output=True,text=True,encoding='utf-8',env=env,timeout=15)
 
 
 def test_actual_cli_agent_round_trip_and_restart(tmp_path):
@@ -236,6 +236,7 @@ def test_actual_cli_agent_round_trip_and_restart(tmp_path):
     result=cli(['init-demo','--home',str(home),'--files','3'])
     assert result.returncode==0,result.stderr
     listed=cli(['tools','--home',str(home)])
+    assert listed.returncode==0,listed.stderr
     assert len(json.loads(listed.stdout)['tools'])==8
     call={'tool':'task_submit','arguments':{'dataset_id':'demo','request_id':'same'}}
     response=cli(['tool','--home',str(home)],json.dumps(call))
@@ -252,7 +253,22 @@ def test_actual_cli_agent_round_trip_and_restart(tmp_path):
     assert count_tasks(home)==1
 
 
-@pytest.mark.parametrize('payload', ['not-json', '{"tool":"datasets_list","arguments":{},"approved":true}', 'x'*65537])
+def test_cli_tools_utf8_when_stdio_is_legacy_codepage(tmp_path):
+    home=tmp_path/'home'
+    result=cli(['init-demo','--home',str(home),'--files','1'])
+    assert result.returncode==0,result.stderr
+    env=dict(os.environ,PYTHONPATH=str(Path(__file__).resolve().parents[1]/'src'),
+             PYTHONUTF8='0',PYTHONIOENCODING='cp1252')
+    listed=subprocess.run([sys.executable,'-m','agentos_runtime','tools','--home',str(home)],
+                          capture_output=True,env=env,timeout=15)
+    assert listed.returncode==0,listed.stderr
+    data=json.loads(listed.stdout.decode('utf-8'))
+    assert len(data['tools'])==8
+    assert '查询' in data['tools'][0]['description']
+
+
+@pytest.mark.parametrize('payload', ['not-json', '{"tool":"datasets_list","arguments":{},"approved":true}', 'x'*65537],
+                         ids=['not-json', 'extra-field', 'oversized'])
 def test_cli_rejects_malformed_or_oversized_request(tmp_path,payload):
     home,_=setup(tmp_path)
     response=cli(['tool','--home',str(home)],payload)
