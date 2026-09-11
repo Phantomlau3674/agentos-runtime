@@ -20,6 +20,8 @@
 - 同分支：REV-008 输入一致性合同固化为快照语义（ADR 0013）：快照后修改/删除/新增/同路径换目录的行为均已定义并有测试；快照字节独立于源目录存活。
 - 同分支：REV-012 受限 IR 显式化（ADR 0014）：CompiledPlan 携带 ir_version='aor.ir.v0.1'，事件 node 字段映射回 IR 节点；解释器仍为 _execute 数据驱动分派，无 eval/任意节点。
 - 同分支：REV-013 plan_explain 只读工具（ADR 0015）：编译+逐节点声明+权限预判，零副作用；优化 pass 在固定四节点 IR 下无合法对象，未实现。工具 12 个。
+- 同分支：REV-019 原生实现实验结论为不引入（reproduction/NATIVE_EXPERIMENT.md）：内核仅占端到端 0.52%，净收益不足。
+- 同分支：REV-014 缓存键分层（ADR 0016）、REV-015 资源键与预算传递（ADR 0017）、REV-017 上下文分层（ADR 0018）、REV-018 能力启用生命周期（docs/CAPABILITY_LIFECYCLE.md）、REV-020 状态化测试与消融报告（reports/2026-09-11-rev020-ablation-continue-stop.md，结论：继续）均已落地。
 
 ## 仍未完成
 
