@@ -8,7 +8,7 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from agentos_runtime.compiler import CompiledPlan, compile_plan
+from agentos_runtime.compiler import CompiledPlan, compile_canonical, compile_plan
 from agentos_runtime.contracts import ActionSpec, OPERATIONS, PlanSpec, default_plan
 from agentos_runtime.errors import RuntimeFault
 from agentos_runtime.fixtures import generate
@@ -81,6 +81,33 @@ def test_run_and_resume_recompile_and_revalidate(tmp_path):
     assert record["plan_hash"] == compiled.plan_hash
     again = Runtime().resume(workspace, root / "inputs", oracle)
     assert again["status"] == "SUCCEEDED" and again["plan_hash"] == compiled.plan_hash
+
+
+def test_canonical_bytes_compile_path_agrees_with_wire_path():
+    plan = default_plan()
+    via_wire = compile_plan(plan)
+    via_bytes = compile_canonical(plan.canonical_bytes())
+    assert via_bytes.plan_hash == via_wire.plan_hash
+    assert via_bytes.canonical_bytes == plan.canonical_bytes()
+
+
+def test_noncanonical_persisted_plan_fails_closed():
+    pretty = json.dumps(default_plan().model_dump(), indent=2, ensure_ascii=False).encode()
+    with pytest.raises(RuntimeFault) as exc:
+        compile_canonical(pretty)
+    assert exc.value.code == "PLAN_NONCANONICAL"
+
+
+def test_resume_rejects_reformatted_plan_json(tmp_path):
+    oracle = generate(tmp_path / "fx", 2, 2, seed=3)
+    workspace = tmp_path / "ws"
+    Runtime().run(default_plan(), tmp_path / "fx" / "inputs", workspace, oracle)
+    target = workspace / "plan.json"
+    target.chmod(0o666)
+    target.write_bytes(json.dumps(default_plan().model_dump(), indent=2).encode())
+    with pytest.raises(RuntimeFault) as exc:
+        Runtime().resume(workspace, tmp_path / "fx" / "inputs", oracle)
+    assert exc.value.code == "PLAN_NONCANONICAL"
 
 
 def test_preflight_checks_policy_on_compiled_nodes(tmp_path):

@@ -14,7 +14,7 @@ from typing import Callable
 from uuid import uuid4
 
 from .actions import action_contract
-from .compiler import CompiledPlan, compile_plan
+from .compiler import CompiledPlan, compile_canonical, compile_plan
 from .contracts import OPERATIONS, PlanSpec
 from .errors import RuntimeFault
 from .journal import Journal, MAX_ATTEMPTS
@@ -50,8 +50,9 @@ class Policy:
             raise RuntimeFault('POLICY_DENIED', '该动作未获得本地所有者授权。')
 
 
-def _preflight(plan: PlanSpec, input_root: Path, workspace: Path, policy: Policy) -> tuple[CompiledPlan, Path, Path]:
-    compiled = compile_plan(plan)
+def _preflight(plan: PlanSpec | bytes, input_root: Path, workspace: Path,
+               policy: Policy) -> tuple[CompiledPlan, Path, Path]:
+    compiled = compile_canonical(plan) if isinstance(plan, bytes) else compile_plan(plan)
     scope = compiled.contract.allowed_operations if compiled.contract else None
     for node in compiled.nodes:
         if scope is not None and node.operation not in scope:
@@ -126,9 +127,10 @@ class Runtime:
         if not workspace.is_dir():
             raise RuntimeFault('WORKSPACE_MISSING', '工作区不存在。')
         with workspace_lock(workspace):
-            plan = PlanSpec.model_validate_json(read_bounded(workspace / 'plan.json', 65_536))
+            # plan.json is validated exactly once: canonical bytes -> CompiledPlan.
+            plan_data = read_bounded(workspace / 'plan.json', 65_536)
             policy = policy or Policy()
-            plan, input_root, workspace = _preflight(plan, input_root, workspace, policy)
+            plan, input_root, workspace = _preflight(plan_data, input_root, workspace, policy)
             oracle = json.loads(json_bytes(oracle))
             journal = Journal(workspace / 'journal.sqlite3', create=False)
             try:

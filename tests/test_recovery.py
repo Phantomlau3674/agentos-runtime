@@ -14,7 +14,7 @@ import pytest
 
 from conftest import kill_process_tree
 
-from agentos_runtime.contracts import default_plan
+from agentos_runtime.contracts import PlanSpec, default_plan
 from agentos_runtime.errors import RuntimeFault
 from agentos_runtime.fixtures import generate
 from agentos_runtime.journal import Journal
@@ -127,7 +127,9 @@ def test_changed_bindings_block(tmp_path, kind, code):
     input_root = root / 'inputs'
     if kind == 'plan':
         plan = json.loads((workspace/'plan.json').read_text(encoding='utf-8')); plan['goal'] = 'changed'
-        (workspace/'plan.json').write_text(json.dumps(plan), encoding='utf-8')
+        # Same plan semantics changed, still canonical bytes -> PLAN_CHANGED.
+        # Non-canonical bytes are rejected earlier as PLAN_NONCANONICAL (test_compile).
+        (workspace/'plan.json').write_bytes(PlanSpec.model_validate(plan).canonical_bytes())
     elif kind == 'oracle': oracle['total_rows'] += 1
     elif kind == 'engine':
         with closing(sqlite3.connect(workspace/'journal.sqlite3')) as conn, conn:

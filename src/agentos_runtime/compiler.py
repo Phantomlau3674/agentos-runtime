@@ -42,14 +42,24 @@ class CompiledPlan:
 
 
 def compile_plan(plan: PlanSpec) -> CompiledPlan:
-    """Validate a detached copy, freeze it, then derive canonical bytes/hash.
-
-    Re-validation happens before freezing so a caller mutating the original
-    wire model after this call cannot alias into the compiled structure.
-    """
+    """Compile a caller-held wire plan: serialize once, then the canonical
+    bytes path is the single validation boundary."""
     if not isinstance(plan, PlanSpec):
         raise RuntimeFault('PLAN_INVALID', '内部编译入口只接受受信 wire 计划类型。')
-    detached = PlanSpec.model_validate_json(plan.model_dump_json())
+    return compile_canonical(plan.canonical_bytes())
+
+
+def compile_canonical(data: bytes) -> CompiledPlan:
+    """The single trusted boundary: canonical bytes -> immutable CompiledPlan.
+
+    Parses exactly once. The stored bytes must already be canonical
+    (sha256(canonical_bytes) == plan_hash by construction), so a hand-edited
+    or differently-serialized document fails closed as PLAN_NONCANONICAL
+    rather than silently re-normalizing.
+    """
+    detached = PlanSpec.model_validate_json(data)
+    if detached.canonical_bytes() != data:
+        raise RuntimeFault('PLAN_NONCANONICAL', '持久化计划不是规范化字节，拒绝沿用。')
     nodes = tuple(CompiledNode(id=node.id, operation=node.operation,
                                depends_on=tuple(node.depends_on))
                   for node in detached.nodes)

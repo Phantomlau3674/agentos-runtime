@@ -10,6 +10,8 @@
 - `_preflight` 返回 CompiledPlan；`run` 与 `resume` 每次进入都重新编译，跨进程加载仍走完整重校验。
 - `compiler.py` 计入 `engine_fingerprint`，实现变化使旧工作区回执按既有规则失效。
 
+修订（REV-006）：`compile_canonical(bytes)` 是唯一编译边界——持久化字节只解析一次，且必须已是规范化字节（否则 `PLAN_NONCANONICAL`，失败关闭而非悄悄重规范化）。`compile_plan(plan)` = `compile_canonical(plan.canonical_bytes())`。`resume` 不再先 `model_validate_json` 再重复 dump/parse。
+
 ## 理由与边界
 
 冻结探针（benchmarks/probe_plan_freeze.py）证实 `frozen=True` 只挡住属性赋值，`nodes` 列表仍可被追加并改变 `plan_hash`。CompiledPlan 让执行期迭代的结构在事实上不可变，但权限检查仍在执行前动态进行，不因此弱化。CompiledPlan 类型本身可被构造——防护不依赖"无法伪造类型"，而依赖公开入口只接受 wire 计划并总是重新编译。
