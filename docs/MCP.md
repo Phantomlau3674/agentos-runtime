@@ -28,7 +28,8 @@ stdout 只承载 UTF-8 JSON-RPC 帧；启动与拒绝信息写入 stderr。
 
 - 每次 `tools/call` 返回一个 `TextContent`（完整网关 JSON 信封）加 `structuredContent`（同一信封对象）。`ok=false` 时 `isError=true`，信封保留 `error.code`（如 `UNKNOWN_TOOL`、`INVALID_ARGUMENT`、`IDEMPOTENCY_CONFLICT`）与 `automatic_retry:false`；不泄露异常文本或主机路径。
 - `ok=true` 仅表示传输与工具执行返回有效响应；任务成败仍看 `data.status`（可能是 `FAILED`）。重试同一委托必须沿用 `request_id`；跨连接/跨进程重复提交只取回原任务（`replayed_request:true`）。
-- 网关在 worker 线程执行，不阻塞并发请求。RPC 取消会停止等待，线程可能继续执行；业务取消调用 `task_cancel`。断连后先检查任务状态，活跃任务不应直接恢复。正常空闲状态下的 stdin EOF 退出已由测试验证；这不代表取消会回滚已发生的效果。
+- 网关在 worker 线程执行，不阻塞并发请求。执行通道（`task_submit`/`task_resume`）与控制通道（查询、取消、事件、产物读取）使用**独立并发额度与有界排队**（`ToolLanes`：执行 2 槽+4 等待，控制 8 槽+32 等待），执行占满时控制仍可响应，超出排队上限立即返回 `QUEUE_FULL` 而非无限堆积。
+- RPC 取消只停止等待（`abandon_on_cancel`），worker 线程可能继续执行；业务取消调用 `task_cancel` 持久化并在动作边界生效。断连后先检查任务状态，活跃任务不应直接恢复。正常空闲状态下的 stdin EOF 退出已由测试验证；这不代表取消会回滚已发生的效果。
 
 ## 边界
 

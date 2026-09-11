@@ -24,6 +24,42 @@ from .gateway import AgentGateway
 
 SERVER_NAME = 'agentos-runtime-mcp'
 
+EXECUTION_TOOLS = frozenset({'task_submit', 'task_resume'})
+
+
+class ToolLanes:
+    """Independent concurrency quotas for long executions vs short controls.
+
+    When every execution slot is busy, control calls (inspect/cancel/events/
+    reads) must still get through. Each lane has a bounded wait queue: beyond
+    it, calls fail with QUEUE_FULL instead of piling up unboundedly.
+    """
+
+    def __init__(self, call, *, execution_slots: int = 2, control_slots: int = 8,
+                 execution_queue: int = 4, control_queue: int = 32):
+        self._call = call
+        self._limiters = {'execution': anyio.CapacityLimiter(execution_slots),
+                          'control': anyio.CapacityLimiter(control_slots)}
+        self._caps = {'execution': execution_slots + execution_queue,
+                      'control': control_slots + control_queue}
+        self._inflight = {'execution': 0, 'control': 0}
+
+    async def dispatch(self, name: str, arguments: dict) -> dict:
+        lane = 'execution' if name in EXECUTION_TOOLS else 'control'
+        if self._inflight[lane] >= self._caps[lane]:
+            return {'ok': False, 'error': {'code': 'QUEUE_FULL',
+                                           'message': f'{lane} 通道排队已满，稍后重试。',
+                                           'automatic_retry': False}}
+        self._inflight[lane] += 1
+        try:
+            # RPC cancellation stops awaiting this call; the worker may keep
+            # running. Business cancellation stays a persisted task_cancel.
+            return await anyio.to_thread.run_sync(
+                lambda: self._call(name, arguments),
+                limiter=self._limiters[lane], abandon_on_cancel=True)
+        finally:
+            self._inflight[lane] -= 1
+
 
 def create_server(home: Path) -> Server:
     """Build an MCP ``Server`` bound to an owner-initialized gateway home.
@@ -33,6 +69,7 @@ def create_server(home: Path) -> Server:
     """
     gateway = AgentGateway(Path(home))
     listed = gateway.tools()
+    lanes = ToolLanes(gateway.call)
 
     async def on_list_tools(ctx, params) -> types.ListToolsResult:
         return types.ListToolsResult(tools=[
@@ -42,12 +79,8 @@ def create_server(home: Path) -> Server:
 
     async def on_call_tool(ctx, params) -> types.CallToolResult:
         arguments = params.arguments if isinstance(params.arguments, dict) else {}
-        # Gateway calls are synchronous and may hold workspace locks; run them
-        # on a worker thread so the JSON-RPC loop stays responsive and a
-        # RPC cancellation stops awaiting this call; its worker may continue.
-        # Owners use task_cancel and inspect state before attempting resume.
-        envelope = await anyio.to_thread.run_sync(
-            lambda: gateway.call(params.name, arguments), abandon_on_cancel=True)
+        # Long executions and short control calls use separate bounded lanes.
+        envelope = await lanes.dispatch(params.name or '', arguments)
         return types.CallToolResult(
             content=[types.TextContent(text=json.dumps(envelope, ensure_ascii=False))],
             structured_content=envelope,
