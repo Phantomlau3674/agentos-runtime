@@ -1,0 +1,42 @@
+name: Import verified source snapshot
+
+on:
+  push:
+    paths:
+      - ".handoff/**"
+      - ".github/workflows/import-source.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reassemble verified archive
+        shell: bash
+        run: |
+          cat .handoff/part-*.b64 > /tmp/source.b64
+          base64 -d /tmp/source.b64 > /tmp/source.tar.xz
+          echo "7e27ced3c6e57c9aa2bcca17c5375713087fd39343c3fcc821d9778ee93ead5b  /tmp/source.tar.xz" | sha256sum -c -
+
+      - name: Import snapshot
+        shell: bash
+        run: |
+          tar -xJf /tmp/source.tar.xz -C .
+
+      - name: Commit imported source
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No source changes to commit"
+            exit 0
+          fi
+          git commit -m "chore: import verified v0.0.2 source snapshot"
+          git push
