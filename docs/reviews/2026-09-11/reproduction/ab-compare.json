@@ -1,0 +1,25 @@
+{
+  "fixture": {
+    "files": 50,
+    "rows": 10
+  },
+  "runs": 3,
+  "samples": {
+    "A_bare_batch": [
+      0.7222,
+      0.2563,
+      0.2777
+    ],
+    "B_governed_runtime": [
+      2.1965,
+      2.6467,
+      2.6281
+    ]
+  },
+  "median_seconds": {
+    "A_bare_batch": 0.2777,
+    "B_governed_runtime": 2.6281
+  },
+  "overhead_ratio": 9.464,
+  "scope": "offline synthetic fixture; governance-cost comparison only; not a live-model or production claim"
+}
