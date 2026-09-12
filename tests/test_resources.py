@@ -9,7 +9,7 @@ from agentos_runtime.fixtures import generate
 from agentos_runtime.gateway import AgentGateway, initialize_demo
 from agentos_runtime.journal import MAX_ATTEMPTS
 from agentos_runtime.locking import workspace_lock
-from agentos_runtime.runtime import Runtime
+from agentos_runtime.runtime import Policy, Runtime
 
 
 class Crash(BaseException):
@@ -61,6 +61,37 @@ def test_same_dataset_independent_tasks_do_not_conflict(tmp_path):
     b = gateway.call('task_submit', {'dataset_id': 'demo', 'request_id': 'b'})['data']
     assert a['status'] == 'SUCCEEDED' and b['status'] == 'SUCCEEDED'
     assert a['task_id'] != b['task_id']
+
+
+def test_parallel_snapshot_reads_deterministic(tmp_path):
+    """EXE-003: >=8 files take the bounded parallel read path; output identical."""
+    oracle = generate(tmp_path / 'fx', 20, 10, seed=9)
+    inputs = tmp_path / 'fx' / 'inputs'
+    a = Runtime().run(default_plan(), inputs, tmp_path / 'a', oracle)
+    b = Runtime().run(default_plan(), inputs, tmp_path / 'b', oracle)
+    assert a['status'] == b['status'] == 'SUCCEEDED'
+    assert {k: v['sha256'] for k, v in a['artifacts'].items()} == \
+        {k: v['sha256'] for k, v in b['artifacts'].items()}
+
+
+def test_cancel_mid_run_stops_at_action_boundary(tmp_path):
+    """EXE-004: flipping the owner policy's cancel flag stops dispatch at the
+    next action boundary; the task is terminal CANCELLED, not retried."""
+    oracle = generate(tmp_path / 'fx', 4, 2, seed=3)
+    workspace = tmp_path / 'ws'
+    policy = Policy()
+
+    def cancel_after_snapshot(current, _):
+        if current == 'node_committed:snapshot':
+            policy.cancelled = True
+
+    record = Runtime().run(default_plan(), tmp_path / 'fx' / 'inputs', workspace,
+                           oracle, policy=policy, phase_hook=cancel_after_snapshot)
+    assert record['status'] == 'CANCELLED' and record['error_code'] == 'CANCELLED'
+    assert record['artifact_state'] == 'not_delivered'
+    with pytest.raises(RuntimeFault) as exc:
+        Runtime().resume(workspace, tmp_path / 'fx' / 'inputs', oracle)
+    assert exc.value.code == 'TERMINAL_RUN'
 
 
 def test_no_retry_multiplication_across_layers(tmp_path):

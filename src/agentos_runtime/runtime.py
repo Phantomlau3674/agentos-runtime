@@ -5,8 +5,10 @@ implicit retries of failures, whole-computer sandbox or distributed transaction.
 """
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 import json
+import stat
 import os
 from pathlib import Path
 from time import perf_counter
@@ -181,14 +183,33 @@ class Runtime:
 
     @staticmethod
     def _read_sources(root: Path, plan: CompiledPlan, check: Callable[[], None] = lambda: None) -> dict[str, bytes]:
-        remaining, source = plan.limits.max_input_bytes, {}
-        for path in input_paths(root, plan.limits.max_files,
-                                INPUT_NAME_RULES[plan.nodes[1].operation]):
+        rule = INPUT_NAME_RULES[plan.nodes[1].operation]
+        paths = input_paths(root, plan.limits.max_files, rule)
+        if len(paths) < 8:
+            remaining, source = plan.limits.max_input_bytes, {}
+            for path in paths:
+                check()
+                blob = read_bounded(path, remaining)
+                remaining -= len(blob)
+                source[path.name] = blob
+            return source
+        # Bounded parallel reads (EXE-003): stat the declared file set first so
+        # the byte budget is enforced on the whole set, then read each file
+        # bounded by its stat'd size. Results keyed by name -> deterministic.
+        sizes = {}
+        for path in paths:
             check()
-            blob = read_bounded(path, remaining)
-            remaining -= len(blob)
-            source[path.name] = blob
-        return source
+            info = path.lstat()
+            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                raise RuntimeFault('UNSUPPORTED_FILE', '仅支持普通、非链接输入文件。')
+            sizes[path.name] = info.st_size
+        if sum(sizes.values()) > plan.limits.max_input_bytes:
+            raise RuntimeFault('INPUT_BUDGET', '输入超过字节预算。')
+        with ThreadPoolExecutor(max_workers=min(4, len(paths))) as pool:
+            blobs = dict(zip((p.name for p in paths),
+                             pool.map(lambda p: read_bounded(p, sizes[p.name]), paths)))
+        check()
+        return blobs
 
     @classmethod
     def _current_hashes(cls, root: Path, plan: CompiledPlan) -> dict[str, str]:
