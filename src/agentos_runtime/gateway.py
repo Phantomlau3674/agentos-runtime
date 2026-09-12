@@ -19,9 +19,10 @@ from .actions import ACTION_CONTRACTS, action_contract
 from .compiler import compile_plan
 from .contracts import OPERATIONS, PlanSpec, StrictModel, default_plan
 from .errors import RuntimeFault
-from .fixtures import generate, generate_dedup
+from .fixtures import generate, generate_dedup, generate_drafts
 from .journal import Journal
 from .locking import workspace_lock
+from .maintenance import enforce_task_quota
 from .runtime import Policy, Runtime, _validate_artifacts
 from .storage import (atomic_json, checked_path, database_path, digest, input_paths, json_bytes,
                       new_file, read_bounded, sync_directory)
@@ -35,6 +36,7 @@ class OwnerPolicySpec(StrictModel):
     schema_version: Literal['aor.owner-policy.v0.1'] = 'aor.owner-policy.v0.1'
     allowed_operations: list[str] = Field(max_length=8)
     max_tasks: Annotated[int, Field(ge=1, le=1000)] = 100
+    max_task_bytes: Annotated[int, Field(ge=1_048_576, le=17_592_186_044_416)] = 536_870_912
 
 
 class NoArguments(StrictModel):
@@ -105,7 +107,8 @@ DESCRIPTIONS = {
 
 def initialize_demo(home: Path, *, files: int = 100, rows: int = 10, seed: int = 7,
                     dedup: bool = False, dedup_files: int = 60,
-                    dedup_groups: int | None = None) -> dict:
+                    dedup_groups: int | None = None, drafts: bool = False,
+                    drafts_count: int = 20) -> dict:
     """Owner-only provisioning. Deliberately NOT registered as an Agent tool."""
     home = checked_path(home)
     home.mkdir(parents=True, exist_ok=False)
@@ -118,6 +121,9 @@ def initialize_demo(home: Path, *, files: int = 100, rows: int = 10, seed: int =
                        duplicate_groups=dedup_groups if dedup_groups is not None
                        else min(6, dedup_files // 3), seed=seed)
         datasets.append('dedup')
+    if drafts:
+        generate_drafts(home / 'fixtures' / 'drafts', briefs=drafts_count, seed=seed)
+        datasets.append('drafts')
     new_file(home / 'datasets.json', json_bytes({'schema_version': 'aor.datasets.v0.1', 'datasets': datasets}))
     (home / 'tasks').mkdir()
     with closing(sqlite3.connect(home / 'registry.sqlite3')) as conn, conn:
@@ -279,6 +285,8 @@ class AgentGateway:
             else:
                 if conn.execute('SELECT COUNT(*) FROM tasks').fetchone()[0] >= owner.max_tasks:
                     raise RuntimeFault('TASK_BUDGET', '任务数量已达所有者上限。')
+                enforce_task_quota(self.home, max_tasks=owner.max_tasks,
+                                   max_total_bytes=owner.max_task_bytes)
                 task_id = uuid4().hex
                 conn.execute('INSERT INTO tasks VALUES (?,?,?,?,?,?,0)',
                     (task_id, request_id, request_hash, dataset_id, oracle_hash, spec.model_dump_json()))

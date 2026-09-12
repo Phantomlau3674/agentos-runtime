@@ -113,3 +113,30 @@ def generate_dedup(root: Path, files: int = 60, duplicate_groups: int = 6,
               "duplicate_groups": sorted(expected_groups, key=lambda g: g['sha256'])}
     new_file(root / "oracle.json", json_bytes(oracle))
     return oracle
+
+
+def generate_drafts(root: Path, briefs: int = 20, seed: int = 7) -> dict:
+    """Third family fixture: .txt briefs; oracle carries expected draft keys."""
+    if type(briefs) is not int or not 1 <= briefs <= 1000:
+        raise RuntimeFault("FIXTURE_SIZE", "合成任务只支持 1–1000 个 brief 文件。")
+    root = checked_path(root)
+    root.mkdir(parents=True, exist_ok=False)
+    inputs = root / "inputs"
+    inputs.mkdir()
+    rng = random.Random(seed)
+    hashes: dict[str, str] = {}
+    expected = []
+    for index in range(briefs):
+        name = f"brief_{index:04d}.txt"
+        body = (f"brief {index}\n" + "".join(rng.choices(
+            "abcdefghijklmnopqrstuvwxyz ", k=rng.randrange(64, 512)))).encode("utf-8")
+        new_file(inputs / name, body)
+        body_hash = digest(body)
+        hashes[name] = body_hash
+        expected.append({'draft_key': digest(f'{name}:{body_hash}'.encode()),
+                         'title': name, 'body_sha256': body_hash, 'bytes': len(body)})
+    oracle = {"fixture_schema": "aor.fixture-oracle-drafts.v0.1", "seed": seed,
+              "input_hashes": hashes, "total_briefs": briefs,
+              "expected_drafts": expected}
+    new_file(root / "oracle.json", json_bytes(oracle))
+    return oracle

@@ -12,7 +12,9 @@ from .errors import RuntimeFault
 
 SAFE_CSV = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,79}\.csv$")
 SAFE_BLOB = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,79}\.(dat|bin|txt)$")
-INPUT_NAME_RULES = {'tabular.aggregate': SAFE_CSV, 'files.dedup_manifest': SAFE_BLOB}
+SAFE_BRIEF = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,79}\.(txt|md)$")
+INPUT_NAME_RULES = {'tabular.aggregate': SAFE_CSV, 'files.dedup_manifest': SAFE_BLOB,
+                    'drafts.mock_flow': SAFE_BRIEF}
 
 
 def digest(data: bytes) -> str:

@@ -8,9 +8,9 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, model_validator
 
 Operation = Literal["inputs.snapshot", "tabular.aggregate", "files.dedup_manifest",
-                    "artifacts.export", "verification.fixture"]
+                    "drafts.mock_flow", "artifacts.export", "verification.fixture"]
 OPERATIONS = ("inputs.snapshot", "tabular.aggregate", "artifacts.export", "verification.fixture")
-COMPUTE_OPERATIONS = ("tabular.aggregate", "files.dedup_manifest")
+COMPUTE_OPERATIONS = ("tabular.aggregate", "files.dedup_manifest", "drafts.mock_flow")
 
 
 class StrictModel(BaseModel):
@@ -102,6 +102,17 @@ def default_dedup_plan() -> PlanSpec:
     operations = ("inputs.snapshot", "files.dedup_manifest", "artifacts.export",
                   "verification.fixture")
     return PlanSpec(goal="合成文件清单与去重：按内容哈希分组定位重复副本，独立核验。", nodes=[
+        ActionSpec(id=name, operation=operation, depends_on=[] if i == 0 else [names[i - 1]])
+        for i, (name, operation) in enumerate(zip(names, operations))
+    ])
+
+
+def default_drafts_plan() -> PlanSpec:
+    """Third family (ADP-005): mock draft fill/readback against a local site."""
+    names = ("snapshot", "drafts", "export", "verify")
+    operations = ("inputs.snapshot", "drafts.mock_flow", "artifacts.export",
+                  "verification.fixture")
+    return PlanSpec(goal="向本地模拟草稿站填写合成 brief、幂等回读并独立核验。", nodes=[
         ActionSpec(id=name, operation=operation, depends_on=[] if i == 0 else [names[i - 1]])
         for i, (name, operation) in enumerate(zip(names, operations))
     ])

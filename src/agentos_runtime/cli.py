@@ -61,16 +61,34 @@ def main(argv: list[str] | None = None) -> int:
     init.add_argument("--rows", type=int, default=10)
     init.add_argument("--with-dedup", action="store_true",
                       help="同时初始化第二任务族（文件去重）数据集")
+    init.add_argument("--with-drafts", action="store_true",
+                      help="同时初始化第三任务族（mock 草稿站）数据集")
     tools = sub.add_parser("tools", help="列出已实现的 Agent 工具及 JSON Schema")
     tools.add_argument("--home", type=Path, required=True)
     tool = sub.add_parser("tool", help="从标准输入读取一个工具请求并返回 JSON；不是 MCP 传输")
     tool.add_argument("--home", type=Path, required=True)
+    maintain = sub.add_parser("maintain", help="所有者巡检任务空间并清理（默认 dry-run）")
+    maintain.add_argument("--home", type=Path, required=True)
+    maintain.add_argument("--older-than-seconds", type=float, default=604800)
+    maintain.add_argument("--max-total-bytes", type=int, default=None)
+    maintain.add_argument("--apply", action="store_true",
+                          help="真正删除；默认只打印清理计划")
     diagnose = sub.add_parser("diagnose", help="所有者导出不含原文、路径或凭据的诊断")
     diagnose.add_argument("--home", type=Path, required=True)
     diagnose.add_argument("--task", required=True)
     diagnose.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     try:
+        if args.command == "maintain":
+            from .maintenance import gc_apply, gc_plan, home_usage
+            plan = gc_plan(args.home, older_than_seconds=args.older_than_seconds,
+                           max_total_bytes=args.max_total_bytes)
+            if args.apply:
+                record = gc_apply(args.home, plan)
+            else:
+                record = {'usage': home_usage(args.home), 'plan': plan}
+            print(json.dumps(record, ensure_ascii=False, indent=2))
+            return 0
         if args.command == "diagnose":
             from .diagnostics import collect_diagnostics
             result = collect_diagnostics(args.home, args.task)
@@ -85,7 +103,7 @@ def main(argv: list[str] | None = None) -> int:
             from .gateway import AgentGateway, initialize_demo
             if args.command == "init-demo":
                 result = initialize_demo(args.home, files=args.files, rows=args.rows,
-                                         dedup=args.with_dedup)
+                                         dedup=args.with_dedup, drafts=args.with_drafts)
             else:
                 gateway = AgentGateway(args.home)
                 if args.command == "tools":

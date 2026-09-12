@@ -41,6 +41,12 @@ ACTION_CONTRACTS: dict[str, ActionContract] = {
         writes=('workspace://checkpoints/dedup_manifest.json',),
         effect='internal',
         summary='按内容哈希分组快照文件，产出清单与重复组到检查点。'),
+    'drafts.mock_flow': ActionContract(
+        operation='drafts.mock_flow',
+        reads=('workspace://snapshots/*',),
+        writes=('workspace://checkpoints/drafts.json', 'workspace://mock_site/drafts/*'),
+        effect='internal',
+        summary='按幂等 key 在任务内 mock 站点创建或复用草稿并回读。'),
     'artifacts.export': ActionContract(
         operation='artifacts.export',
         reads=('workspace://checkpoints/*',),

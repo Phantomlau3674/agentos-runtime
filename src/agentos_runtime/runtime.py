@@ -18,6 +18,7 @@ from .compiler import CompiledPlan, compile_canonical, compile_plan
 from .contracts import COMPUTE_OPERATIONS, OPERATIONS, PlanSpec
 from .errors import RuntimeFault
 from .files_dedup import dedup_manifest, duplicates_csv
+from .mock_drafts import drafts_csv, mock_flow
 from .journal import Journal, MAX_ATTEMPTS
 from .locking import workspace_lock
 from .storage import (INPUT_NAME_RULES, atomic_json, checked_path, digest,
@@ -29,9 +30,11 @@ from .verification import ORACLE_SCHEMAS, run_verifier
 FAMILY_ARTIFACTS = {
     'tabular.aggregate': frozenset({'summary.json', 'errors.json', 'summary.csv'}),
     'files.dedup_manifest': frozenset({'dedup_report.json', 'duplicates.csv'}),
+    'drafts.mock_flow': frozenset({'draft_manifest.json', 'drafts.csv'}),
 }
 CHECKPOINT_NAMES = {'tabular.aggregate': 'aggregate.json',
-                    'files.dedup_manifest': 'dedup_manifest.json'}
+                    'files.dedup_manifest': 'dedup_manifest.json',
+                    'drafts.mock_flow': 'drafts.json'}
 PhaseHook = Callable[[str, Path], None]
 
 
@@ -39,7 +42,8 @@ def engine_fingerprint() -> str:
     """Prevent reusing receipts across a changed implementation or verifier."""
     root = Path(__file__).parent
     names = ('runtime.py', 'contracts.py', 'compiler.py', 'actions.py', 'storage.py',
-             'journal.py', 'locking.py', 'tabular.py', 'files_dedup.py', 'verification.py')
+             'journal.py', 'locking.py', 'tabular.py', 'files_dedup.py', 'mock_drafts.py',
+             'verification.py')
     return digest(b''.join(name.encode() + (root / name).read_bytes() for name in names))
 
 
@@ -309,8 +313,11 @@ class Runtime:
                 elif node.operation in COMPUTE_OPERATIONS:
                     if node.operation == 'tabular.aggregate':
                         result = aggregate(blobs, plan.limits.max_rows)
-                    else:
+                    elif node.operation == 'files.dedup_manifest':
                         result = dedup_manifest(blobs, plan.limits.max_files)
+                    else:
+                        result = mock_flow(blobs, workspace / 'mock_site',
+                                           plan.limits.max_files)
                     checkpoint = json_bytes(result)
                     if len(checkpoint) > plan.limits.max_artifact_bytes:
                         raise RuntimeFault('ARTIFACT_BUDGET', '计算检查点超过产物预算。')
@@ -328,9 +335,12 @@ class Runtime:
                         artifacts = {'summary.json': json_bytes({k: v for k, v in result.items() if k != 'errors'}),
                                      'errors.json': json_bytes(result['errors']),
                                      'summary.csv': summary_csv(result['groups'])}
-                    else:
+                    elif compute_op == 'files.dedup_manifest':
                         artifacts = {'dedup_report.json': json_bytes(result),
                                      'duplicates.csv': duplicates_csv(result)}
+                    else:
+                        artifacts = {'draft_manifest.json': json_bytes(result),
+                                     'drafts.csv': drafts_csv(result)}
                     if sum(map(len, artifacts.values())) > plan.limits.max_artifact_bytes:
                         raise RuntimeFault('ARTIFACT_BUDGET', '产物超过预算。')
                     if output.exists():
