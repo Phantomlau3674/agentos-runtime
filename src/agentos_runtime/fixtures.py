@@ -71,3 +71,45 @@ def generate(root: Path, files: int = 100, rows_per_file: int = 10, seed: int = 
               "groups": groups, "errors": errors}
     new_file(root / "oracle.json", json_bytes(oracle))
     return oracle
+
+
+def generate_dedup(root: Path, files: int = 60, duplicate_groups: int = 6,
+                   seed: int = 7) -> dict:
+    """Second family fixture: .dat payloads with planted identical-content groups."""
+    if type(files) is not int or type(duplicate_groups) is not int \
+            or not 4 <= files <= 1000 or not 1 <= duplicate_groups <= files // 3:
+        raise RuntimeFault("FIXTURE_SIZE", "合成任务只支持 4–1000 个文件、不超过半数的重复组。")
+    root = checked_path(root)
+    root.mkdir(parents=True, exist_ok=False)
+    inputs = root / "inputs"
+    inputs.mkdir()
+    rng = random.Random(seed)
+    members: list[list[str]] = []
+    index = 0
+    for _ in range(duplicate_groups):
+        size = rng.choice((2, 2, 3))
+        if index + size > files - 1:  # leave room for at least one unique file
+            break
+        members.append([f"blob_{i:04d}.dat" for i in range(index, index + size)])
+        index += size
+    hashes: dict[str, str] = {}
+    expected_groups = []
+    for names in members:
+        payload = rng.randbytes(256 + rng.randrange(512))
+        for name in names:
+            new_file(inputs / name, payload)
+            hashes[name] = digest(payload)
+        expected_groups.append({'sha256': digest(payload), 'files': names})
+    while index < files:
+        name = f"blob_{index:04d}.dat"
+        payload = rng.randbytes(256 + rng.randrange(512))
+        new_file(inputs / name, payload)
+        hashes[name] = digest(payload)
+        index += 1
+    oracle = {"fixture_schema": "aor.fixture-oracle-dedup.v0.1", "seed": seed,
+              "input_hashes": hashes, "total_files": len(hashes),
+              "unique_contents": len(set(hashes.values())),
+              "duplicate_files": sum(len(g['files']) for g in expected_groups),
+              "duplicate_groups": sorted(expected_groups, key=lambda g: g['sha256'])}
+    new_file(root / "oracle.json", json_bytes(oracle))
+    return oracle

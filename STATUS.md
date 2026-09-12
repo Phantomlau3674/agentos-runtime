@@ -22,6 +22,7 @@
 - 同分支：REV-013 plan_explain 只读工具（ADR 0015）：编译+逐节点声明+权限预判，零副作用；优化 pass 在固定四节点 IR 下无合法对象，未实现。工具 12 个。
 - 同分支：REV-019 原生实现实验结论为不引入（reproduction/NATIVE_EXPERIMENT.md）：内核仅占端到端 0.52%，净收益不足。
 - 同分支：REV-014 缓存键分层（ADR 0016）、REV-015 资源键与预算传递（ADR 0017）、REV-017 上下文分层（ADR 0018）、REV-018 能力启用生命周期（docs/CAPABILITY_LIFECYCLE.md）、REV-020 状态化测试与消融报告（reports/2026-09-11-rev020-ablation-continue-stop.md，结论：继续）均已落地。
+- 同分支：ADP-006 第二个文件任务族（ADR 0019）：files.dedup_manifest 计算操作 + 独立核验器 fixture_dedup_manifest.v1 + oracle schema 绑定；复用同一执行器与恢复语义。6 项族测试通过，本机完整套件 260 通过、5 跳过。
 
 ## 仍未完成
 

@@ -13,7 +13,7 @@ from .fixtures import generate
 from .runtime import Runtime
 from .storage import checked_path, json_bytes, new_file, read_bounded
 from .tabular import aggregate, summary_csv
-from .verification import verify
+from .verification import verify_tabular
 
 
 def _force_utf8_stdio() -> None:
@@ -59,6 +59,8 @@ def main(argv: list[str] | None = None) -> int:
     init.add_argument("--home", type=Path, required=True)
     init.add_argument("--files", type=int, default=100)
     init.add_argument("--rows", type=int, default=10)
+    init.add_argument("--with-dedup", action="store_true",
+                      help="同时初始化第二任务族（文件去重）数据集")
     tools = sub.add_parser("tools", help="列出已实现的 Agent 工具及 JSON Schema")
     tools.add_argument("--home", type=Path, required=True)
     tool = sub.add_parser("tool", help="从标准输入读取一个工具请求并返回 JSON；不是 MCP 传输")
@@ -82,7 +84,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.command in {"init-demo", "tools", "tool"}:
             from .gateway import AgentGateway, initialize_demo
             if args.command == "init-demo":
-                result = initialize_demo(args.home, files=args.files, rows=args.rows)
+                result = initialize_demo(args.home, files=args.files, rows=args.rows,
+                                         dedup=args.with_dedup)
             else:
                 gateway = AgentGateway(args.home)
                 if args.command == "tools":
@@ -141,8 +144,7 @@ def main(argv: list[str] | None = None) -> int:
             final_hashes = {p.name: digest(read_bounded(p, plan.limits.max_input_bytes))
                             for p in input_paths(args.fixture / "inputs", plan.limits.max_files)}
             persisted = {n: read_bounded(root / n, plan.limits.max_artifact_bytes) for n in data}
-            report = verify(persisted["summary.json"], persisted["errors.json"], persisted["summary.csv"],
-                            oracle, hashes, final_hashes)
+            report = verify_tabular(persisted, oracle, hashes, final_hashes)
             record = {"status": "SUCCEEDED" if report["passed"] else "FAILED", "verification": report,
                       "elapsed_seconds": perf_counter()-start, "kind": "offline_batch_reference_not_agent_baseline"}
             new_file(root / "baseline.json", json_bytes(record))

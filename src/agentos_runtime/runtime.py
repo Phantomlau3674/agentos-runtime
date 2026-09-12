@@ -13,19 +13,25 @@ from time import perf_counter
 from typing import Callable
 from uuid import uuid4
 
-from .actions import action_contract
+from .actions import ACTION_CONTRACTS, action_contract
 from .compiler import CompiledPlan, compile_canonical, compile_plan
-from .contracts import OPERATIONS, PlanSpec
+from .contracts import COMPUTE_OPERATIONS, OPERATIONS, PlanSpec
 from .errors import RuntimeFault
+from .files_dedup import dedup_manifest, duplicates_csv
 from .journal import Journal, MAX_ATTEMPTS
 from .locking import workspace_lock
-from .storage import (atomic_json, checked_path, digest, ensure_file, input_paths,
-                      json_bytes, new_file, read_bounded, sync_directory)
+from .storage import (INPUT_NAME_RULES, atomic_json, checked_path, digest,
+                      ensure_file, input_paths, json_bytes, new_file, read_bounded,
+                      sync_directory)
 from .tabular import aggregate, summary_csv
-from .verification import verify
+from .verification import ORACLE_SCHEMAS, run_verifier
 
-ARTIFACTS = frozenset({'summary.json', 'errors.json', 'summary.csv'})
-PUBLIC_ARTIFACTS = ARTIFACTS | {'verification.json'}
+FAMILY_ARTIFACTS = {
+    'tabular.aggregate': frozenset({'summary.json', 'errors.json', 'summary.csv'}),
+    'files.dedup_manifest': frozenset({'dedup_report.json', 'duplicates.csv'}),
+}
+CHECKPOINT_NAMES = {'tabular.aggregate': 'aggregate.json',
+                    'files.dedup_manifest': 'dedup_manifest.json'}
 PhaseHook = Callable[[str, Path], None]
 
 
@@ -33,14 +39,14 @@ def engine_fingerprint() -> str:
     """Prevent reusing receipts across a changed implementation or verifier."""
     root = Path(__file__).parent
     names = ('runtime.py', 'contracts.py', 'compiler.py', 'actions.py', 'storage.py',
-             'journal.py', 'locking.py', 'tabular.py', 'verification.py')
+             'journal.py', 'locking.py', 'tabular.py', 'files_dedup.py', 'verification.py')
     return digest(b''.join(name.encode() + (root / name).read_bytes() for name in names))
 
 
 @dataclass
 class Policy:
     # This object comes from the local owner, never from an agent-supplied plan.
-    allowed_operations: frozenset[str] = frozenset(OPERATIONS)
+    allowed_operations: frozenset[str] = frozenset(ACTION_CONTRACTS)
     cancelled: bool = False
 
     def check(self, operation: str) -> None:
@@ -77,11 +83,13 @@ def _directory_names(root: Path, allowed: set | frozenset) -> set[str]:
     return names
 
 
-def _validate_artifacts(root: Path, manifest: dict, maximum: int, *, full: bool = False) -> dict[str, bytes]:
-    expected = PUBLIC_ARTIFACTS if full else ARTIFACTS
+def _validate_artifacts(root: Path, manifest: dict, maximum: int, *, family: str,
+                        full: bool = False) -> dict[str, bytes]:
+    base = FAMILY_ARTIFACTS[family]
+    expected = base | {'verification.json'} if full else base
     if set(manifest) != expected:
         raise RuntimeFault('CHECKPOINT_INVALID', '产物回执结构不符合当前契约。')
-    names = _directory_names(root, PUBLIC_ARTIFACTS)
+    names = _directory_names(root, base | {'verification.json'})
     if not expected <= names or (full and names != expected):
         raise RuntimeFault('ARTIFACT_MISSING', '产物缺失，不能复用已完成结果。')
     remaining, data = maximum, {}
@@ -153,8 +161,9 @@ class Runtime:
                 if state['status'] == 'SUCCEEDED':
                     record = json.loads(state['record'])
                     data = _validate_artifacts(workspace / 'outputs', record['artifacts'],
-                                               plan.limits.max_artifact_bytes, full=True)
-                    report = verify(data['summary.json'], data['errors.json'], data['summary.csv'], oracle, hashes, hashes)
+                                               plan.limits.max_artifact_bytes,
+                                               family=plan.nodes[1].operation, full=True)
+                    report = run_verifier(plan.nodes[1].operation, data, oracle, hashes, hashes)
                     if not report['passed'] or json.loads(data['verification.json']) != report:
                         raise RuntimeFault('VERIFICATION_FAILED', '历史产物未通过重新核验。')
                     # run.json is a derived cache, repaired from the committed DB record.
@@ -169,7 +178,8 @@ class Runtime:
     @staticmethod
     def _read_sources(root: Path, plan: CompiledPlan, check: Callable[[], None] = lambda: None) -> dict[str, bytes]:
         remaining, source = plan.limits.max_input_bytes, {}
-        for path in input_paths(root, plan.limits.max_files):
+        for path in input_paths(root, plan.limits.max_files,
+                                INPUT_NAME_RULES[plan.nodes[1].operation]):
             check()
             blob = read_bounded(path, remaining)
             remaining -= len(blob)
@@ -235,6 +245,9 @@ class Runtime:
             prefix = [n.id for n in plan.nodes[:len(completed_ids)]]
             if completed_ids != set(prefix):
                 raise RuntimeFault('CHECKPOINT_ORDER', '已完成阶段不是合法前缀，停止恢复。')
+            compute_op = plan.nodes[1].operation
+            if oracle.get('fixture_schema') != ORACLE_SCHEMAS[compute_op]:
+                raise RuntimeFault('ORACLE_MISMATCH', '数据集 oracle 与计划任务族不匹配。')
             for node in plan.nodes:
                 policy.check(node.operation)
                 check_budget()
@@ -244,20 +257,24 @@ class Runtime:
                     receipt = receipts[node.id]
                     if node.operation == 'inputs.snapshot':
                         validate_snapshot(receipt)
-                    elif node.operation == 'tabular.aggregate':
-                        blob = read_bounded(workspace / 'checkpoints' / 'aggregate.json', plan.limits.max_artifact_bytes)
+                    elif node.operation in COMPUTE_OPERATIONS:
+                        blob = read_bounded(workspace / 'checkpoints' / CHECKPOINT_NAMES[node.operation],
+                                            plan.limits.max_artifact_bytes)
                         if digest(blob) != receipt['sha256']:
                             raise RuntimeFault('CHECKPOINT_CHANGED', '汇总检查点已变化，停止恢复。')
                         result = json.loads(blob)
                     elif node.operation == 'artifacts.export':
                         artifact_manifest = receipt['artifacts']
-                        _validate_artifacts(local_root(), artifact_manifest, plan.limits.max_artifact_bytes)
+                        _validate_artifacts(local_root(), artifact_manifest,
+                                            plan.limits.max_artifact_bytes, family=compute_op)
                     else:
                         if prepared is None or prepared != receipt:
                             raise RuntimeFault('CHECKPOINT_INVALID', '交付回执与准备记录不一致。')
                         artifact_manifest = receipt['artifacts']
-                        data = _validate_artifacts(output, artifact_manifest, plan.limits.max_artifact_bytes, full=True)
-                        report = verify(data['summary.json'], data['errors.json'], data['summary.csv'], oracle, hashes, hashes)
+                        data = _validate_artifacts(output, artifact_manifest,
+                                                   plan.limits.max_artifact_bytes,
+                                                   family=compute_op, full=True)
+                        report = run_verifier(compute_op, data, oracle, hashes, hashes)
                         if plan.contract is not None and report['validator'] != plan.contract.acceptance:
                             raise RuntimeFault('ACCEPTANCE_MISMATCH',
                                                '验收标准与实际核验器不一致，不能按合同交付。')
@@ -289,28 +306,37 @@ class Runtime:
                         hook(f'snapshot_file:{name}')
                     ensure_file(workspace / 'input_manifest.json', json_bytes(hashes), code='SNAPSHOT_CHANGED')
                     receipt = {'hashes': hashes}
-                elif node.operation == 'tabular.aggregate':
-                    result = aggregate(blobs, plan.limits.max_rows)
+                elif node.operation in COMPUTE_OPERATIONS:
+                    if node.operation == 'tabular.aggregate':
+                        result = aggregate(blobs, plan.limits.max_rows)
+                    else:
+                        result = dedup_manifest(blobs, plan.limits.max_files)
                     checkpoint = json_bytes(result)
                     if len(checkpoint) > plan.limits.max_artifact_bytes:
-                        raise RuntimeFault('ARTIFACT_BUDGET', '汇总检查点超过产物预算。')
+                        raise RuntimeFault('ARTIFACT_BUDGET', '计算检查点超过产物预算。')
                     folder = checked_path(workspace / 'checkpoints')
                     folder.mkdir(exist_ok=True)
-                    _directory_names(folder, {'aggregate.json'})
-                    ensure_file(folder / 'aggregate.json', checkpoint, code='CHECKPOINT_CHANGED')
+                    _directory_names(folder, {CHECKPOINT_NAMES[node.operation]})
+                    ensure_file(folder / CHECKPOINT_NAMES[node.operation], checkpoint,
+                                code='CHECKPOINT_CHANGED')
                     receipt = {'sha256': digest(checkpoint), 'bytes': len(checkpoint)}
                     hook('aggregate_saved')
                 elif node.operation == 'artifacts.export':
                     if result is None:
-                        raise RuntimeFault('CHECKPOINT_INVALID', '缺少可用汇总结果。')
-                    artifacts = {'summary.json': json_bytes({k: v for k, v in result.items() if k != 'errors'}),
-                                 'errors.json': json_bytes(result['errors']), 'summary.csv': summary_csv(result['groups'])}
+                        raise RuntimeFault('CHECKPOINT_INVALID', '缺少可用计算结果。')
+                    if compute_op == 'tabular.aggregate':
+                        artifacts = {'summary.json': json_bytes({k: v for k, v in result.items() if k != 'errors'}),
+                                     'errors.json': json_bytes(result['errors']),
+                                     'summary.csv': summary_csv(result['groups'])}
+                    else:
+                        artifacts = {'dedup_report.json': json_bytes(result),
+                                     'duplicates.csv': duplicates_csv(result)}
                     if sum(map(len, artifacts.values())) > plan.limits.max_artifact_bytes:
                         raise RuntimeFault('ARTIFACT_BUDGET', '产物超过预算。')
                     if output.exists():
                         raise RuntimeFault('UNKNOWN_EFFECT', '导出尚未记账但交付目录存在，停止核对。')
                     checked_path(staging).mkdir(exist_ok=True)
-                    _directory_names(staging, ARTIFACTS)
+                    _directory_names(staging, FAMILY_ARTIFACTS[compute_op])
                     for name, data in artifacts.items():
                         policy.check(node.operation)
                         check_budget()
@@ -320,10 +346,11 @@ class Runtime:
                     receipt = {'artifacts': artifact_manifest.copy()}
                 else:
                     current_root = local_root()
-                    persisted = _validate_artifacts(current_root, artifact_manifest, plan.limits.max_artifact_bytes)
+                    persisted = _validate_artifacts(current_root, artifact_manifest,
+                                                    plan.limits.max_artifact_bytes,
+                                                    family=compute_op)
                     final_hashes = {n: digest(b) for n, b in self._read_sources(input_root, plan, check_budget).items()}
-                    report = verify(persisted['summary.json'], persisted['errors.json'], persisted['summary.csv'],
-                                    oracle, hashes, final_hashes)
+                    report = run_verifier(compute_op, persisted, oracle, hashes, final_hashes)
                     if plan.contract is not None and report['validator'] != plan.contract.acceptance:
                         raise RuntimeFault('ACCEPTANCE_MISMATCH',
                                            '验收标准与实际核验器不一致，不能按合同交付。')

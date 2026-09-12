@@ -1,0 +1,89 @@
+DAT-001 [P0] 实现 SQLite 状态与事件日志
+  deliverable: 任务/节点/操作/事件表及事务
+  acceptance: ['状态变化和对应事件同事务', '单一状态写入者与任务版本校验', '重启能恢复已持久化任务记录']
+  deps: API-001,API-005
+
+DAT-002 [P0] 实现不可变产物存储
+  deliverable: blob 存储、manifest 和 staging 提交
+  acceptance: ['生成随机 artifact_id 与内容 hash', '写入 staging 后校验并发布，不覆写原始文件', '模型默认只得到允许的摘要']
+  deps: API-003,SEC-001
+
+DAT-003 [P0] 实现输入快照与只读工作区
+  deliverable: 导入 manifest、快照与来源哈希
+  acceptance: ['每次导入有明确授权目录', '执行读取固定输入版本', '任务结束原始输入 hash 不变']
+  deps: DAT-002,SEC-002
+
+DAT-004 [P1] 实现依赖追踪与局部失效
+  deliverable: 输入—节点—产物依赖索引
+  acceptance: ['输入、处理规则或适配器版本变化可检测', '只复用仍可验证的产物', '依赖不完整时采取保守重算']
+  deps: DAT-003,API-002
+
+DAT-005 [P1] 实现迁移、备份和恢复检查
+  deliverable: schema_migrations 与备份/恢复流程
+  acceptance: ['在副本验证迁移并能回退数据格式', '备份同时包含必要 blob manifest', '不支持的状态版本阻止继续执行']
+  deps: DAT-001,DAT-002
+
+DAT-006 [P2] 实现配额、保留期与垃圾回收
+  deliverable: dry-run 清理与空间配额
+  acceptance: ['活跃任务、已批准计划和保留证据有引用保护', '删除前展示范围', '达到配额拒绝新写并保留现有状态']
+  deps: DAT-004,DAT-005
+
+EXE-001 [P0] 实现串行确定动作执行
+  deliverable: 离线运行一条有限 DAG 的 executor
+  acceptance: ['每步派发前走 broker', 'operation intent 先落盘再执行', '执行状态可以定位到具体节点']
+  deps: API-002,API-004,DAT-001,SEC-001
+
+EXE-002 [P0] 实现批量动作与失败边界
+  deliverable: 有界批次执行和项级结果
+  acceptance: ['无需模型逐文件介入', '每个数据项仍受范围/类型约束', '局部失败明确列出已做/未做/未知项']
+  deps: EXE-001,ADP-002
+
+EXE-003 [P1] 加入有限并行与资源键
+  deliverable: 有界并发调度器
+  acceptance: ['仅派发依赖已通过的节点', '同一文件/浏览器实例冲突写串行', '保持确定的最终产物顺序或显式排序规则']
+  deps: EXE-002,DAT-004
+
+EXE-004 [P1] 实现超时、取消和清理
+  deliverable: 取消令牌、时限与 worker 退出协议
+  acceptance: ['取消后停止派发新节点', '说明在途动作与已保存产物', '超时过程有资源清理和状态证据']
+  deps: EXE-001,API-005
+
+EXE-005 [P0] 接入节点与任务级验收
+  deliverable: 独立 verifier 执行路径
+  acceptance: ['节点执行和结果核验分开', '任务成功需要目标验收全通过', '输出记录验收器版本和证据']
+  deps: EXE-002,ADP-003
+
+EXE-006 [P1] 完善租约与旧 worker 防护
+  deliverable: 租约、fencing token 和冲突处理
+  acceptance: ['过期 worker 无法写当前状态', '无法阻止外部迟到写时不重派重复写', '资源释放后重新检查输入版本']
+  deps: EXE-003,EXE-004
+
+ADP-001 [P0] 实现无副作用 mock 适配器
+  deliverable: 确定输入输出和故障回执
+  acceptance: ['支持成功、失败、延时、部分完成和未知效果', '可重复测试不同状态', '不调用外部服务或模型']
+  deps: API-002
+
+ADP-002 [P0] 实现只读文件和副本动作
+  deliverable: 清单、读取、生成新副本和 hash 操作
+  acceptance: ['只处理明确导入的输入', '输出必须在任务工作区', '批次结果按项给出证据']
+  deps: ADP-001,DAT-003
+
+ADP-003 [P0] 实现合成表格处理动作
+  deliverable: CSV 解析、校验、分组与导出
+  acceptance: ['Decimal/最小单位规则一致', '币种隔离并记录舍入方式', 'summary/errors 与 oracle 对应']
+  deps: ADP-002,BEN-001
+
+ADP-004 [P1] 实现选定浏览器桥接
+  deliverable: 单一默认浏览器适配器
+  acceptance: ['使用固定版本与专用会话', '可读结构化状态与有限语义操作', '定义崩溃、取消和会话重建规则']
+  deps: API-002,GOV-005
+
+ADP-005 [P1] 实现本地模拟草稿流程
+  deliverable: mock 草稿站与填写/读回/导出动作
+  acceptance: ['无需账号、外网或付费模型', '按幂等 key 查询既有草稿', '草稿字段与输入 hash 绑定并独立核验']
+  deps: ADP-004,SEC-003,REC-003
+
+ADP-006 [P1] 实现第二个独立文件任务族
+  deliverable: 合成文件清单/去重/副本任务
+  acceptance: ['复用同一动作与状态契约', '不拷贝另一个独立 executor', '可测试多个分支的局部失效']
+  deps: ADP-002,EXE-005,DAT-004

@@ -11,6 +11,8 @@ import stat
 from .errors import RuntimeFault
 
 SAFE_CSV = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,79}\.csv$")
+SAFE_BLOB = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,79}\.(dat|bin|txt)$")
+INPUT_NAME_RULES = {'tabular.aggregate': SAFE_CSV, 'files.dedup_manifest': SAFE_BLOB}
 
 
 def digest(data: bytes) -> str:
@@ -61,7 +63,7 @@ def read_bounded(path: Path, maximum: int) -> bytes:
         return data
 
 
-def input_paths(root: Path, max_files: int) -> list[Path]:
+def input_paths(root: Path, max_files: int, rule: re.Pattern = SAFE_CSV) -> list[Path]:
     root = checked_path(root)
     if not root.is_dir():
         raise RuntimeFault("INPUT_ROOT", "请选择已存在的合成输入目录。")
@@ -70,11 +72,11 @@ def input_paths(root: Path, max_files: int) -> list[Path]:
     for path in root.iterdir():
         if len(paths) >= max_files:
             raise RuntimeFault("FILE_BUDGET", "文件数量超过预算。")
-        if not SAFE_CSV.fullmatch(path.name):
-            raise RuntimeFault("INPUT_NAME", "目录只能包含名称受限的 CSV 文件，不能包含子目录。")
+        if not rule.fullmatch(path.name):
+            raise RuntimeFault("INPUT_NAME", "目录只能包含本任务族允许的文件名，不能包含子目录。")
         paths.append(path)
     if not paths:
-        raise RuntimeFault("EMPTY_INPUT", "输入目录没有 CSV 文件。")
+        raise RuntimeFault("EMPTY_INPUT", "输入目录没有可处理的文件。")
     return sorted(paths, key=lambda p: p.name)
 
 

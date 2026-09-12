@@ -19,7 +19,7 @@ from .actions import ACTION_CONTRACTS, action_contract
 from .compiler import compile_plan
 from .contracts import OPERATIONS, PlanSpec, StrictModel, default_plan
 from .errors import RuntimeFault
-from .fixtures import generate
+from .fixtures import generate, generate_dedup
 from .journal import Journal
 from .locking import workspace_lock
 from .runtime import Policy, Runtime, _validate_artifacts
@@ -33,7 +33,7 @@ ARTIFACT_ID = Annotated[str, Field(pattern=r'^[0-9a-f]{64}$')]
 
 class OwnerPolicySpec(StrictModel):
     schema_version: Literal['aor.owner-policy.v0.1'] = 'aor.owner-policy.v0.1'
-    allowed_operations: list[str] = Field(max_length=4)
+    allowed_operations: list[str] = Field(max_length=8)
     max_tasks: Annotated[int, Field(ge=1, le=1000)] = 100
 
 
@@ -103,14 +103,22 @@ DESCRIPTIONS = {
 }
 
 
-def initialize_demo(home: Path, *, files: int = 100, rows: int = 10, seed: int = 7) -> dict:
+def initialize_demo(home: Path, *, files: int = 100, rows: int = 10, seed: int = 7,
+                    dedup: bool = False, dedup_files: int = 60,
+                    dedup_groups: int | None = None) -> dict:
     """Owner-only provisioning. Deliberately NOT registered as an Agent tool."""
     home = checked_path(home)
     home.mkdir(parents=True, exist_ok=False)
-    new_file(home / 'owner_policy.json', json_bytes(OwnerPolicySpec(allowed_operations=list(OPERATIONS)).model_dump()))
+    new_file(home / 'owner_policy.json', json_bytes(OwnerPolicySpec(allowed_operations=sorted(ACTION_CONTRACTS)).model_dump()))
     (home / 'fixtures').mkdir()
     generate(home / 'fixtures' / 'demo', files, rows, seed)
-    new_file(home / 'datasets.json', json_bytes({'schema_version': 'aor.datasets.v0.1', 'datasets': ['demo']}))
+    datasets = ['demo']
+    if dedup:
+        generate_dedup(home / 'fixtures' / 'dedup', files=dedup_files,
+                       duplicate_groups=dedup_groups if dedup_groups is not None
+                       else min(6, dedup_files // 3), seed=seed)
+        datasets.append('dedup')
+    new_file(home / 'datasets.json', json_bytes({'schema_version': 'aor.datasets.v0.1', 'datasets': datasets}))
     (home / 'tasks').mkdir()
     with closing(sqlite3.connect(home / 'registry.sqlite3')) as conn, conn:
         conn.executescript('''
@@ -122,7 +130,7 @@ def initialize_demo(home: Path, *, files: int = 100, rows: int = 10, seed: int =
             );
         ''')
     sync_directory(home)
-    return {'status': 'READY', 'datasets': ['demo'], 'live_model_calls': 0}
+    return {'status': 'READY', 'datasets': datasets, 'live_model_calls': 0}
 
 
 class BoundPolicy(Policy):
@@ -243,7 +251,8 @@ class AgentGateway:
         for name in self._datasets():
             _, oracle = self._fixture(name)
             records.append({'dataset_id': name, 'files': len(oracle['input_hashes']),
-                            'rows': oracle['total_rows'], 'version': digest(json_bytes(oracle))})
+                            'rows': oracle.get('total_rows'), 'family': oracle.get('fixture_schema'),
+                            'version': digest(json_bytes(oracle))})
         return {'datasets': records, 'synthetic_only': True}
 
     def task_submit(self, dataset_id: str, request_id: str, plan: dict | None = None) -> dict:
@@ -330,7 +339,9 @@ class AgentGateway:
                             artifact_state=record['artifact_state'])
                 if state['status'] == 'SUCCEEDED':
                     plan = PlanSpec.model_validate_json(task['plan'])
-                    _validate_artifacts(workspace / 'outputs', record['artifacts'], plan.limits.max_artifact_bytes, full=True)
+                    _validate_artifacts(workspace / 'outputs', record['artifacts'],
+                                        plan.limits.max_artifact_bytes,
+                                        family=plan.nodes[1].operation, full=True)
                     data['artifacts'] = [{'artifact_id': self._artifact_id(task_id, name, info['sha256']),
                                           'name': name, 'sha256': info['sha256'], 'bytes': info['bytes']}
                                          for name, info in record['artifacts'].items()]

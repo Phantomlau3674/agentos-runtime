@@ -35,9 +35,15 @@ ACTION_CONTRACTS: dict[str, ActionContract] = {
         writes=('workspace://checkpoints/aggregate.json',),
         effect='internal',
         summary='整数分聚合快照内容到检查点。'),
+    'files.dedup_manifest': ActionContract(
+        operation='files.dedup_manifest',
+        reads=('workspace://snapshots/*',),
+        writes=('workspace://checkpoints/dedup_manifest.json',),
+        effect='internal',
+        summary='按内容哈希分组快照文件，产出清单与重复组到检查点。'),
     'artifacts.export': ActionContract(
         operation='artifacts.export',
-        reads=('workspace://checkpoints/aggregate.json',),
+        reads=('workspace://checkpoints/*',),
         writes=('workspace://staging/*', 'workspace://outputs/*'),
         effect='published_artifact',
         summary='把检查点发布为带清单的产物。'),

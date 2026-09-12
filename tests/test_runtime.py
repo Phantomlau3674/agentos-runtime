@@ -23,7 +23,7 @@ from agentos_runtime.fixtures import generate
 from agentos_runtime.runtime import Policy, Runtime
 from agentos_runtime.storage import digest, json_bytes, read_bounded
 from agentos_runtime.tabular import aggregate
-from agentos_runtime.verification import verify
+from agentos_runtime.verification import verify_tabular as verify
 
 
 def fixture(tmp_path, files=3, rows=10):

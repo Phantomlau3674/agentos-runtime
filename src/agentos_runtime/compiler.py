@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 
-from .contracts import OPERATIONS, GoalContract, Limits, PlanSpec
+from .contracts import COMPUTE_OPERATIONS, GoalContract, Limits, PlanSpec
 from .errors import RuntimeFault
 
 
@@ -67,14 +67,15 @@ def compile_canonical(data: bytes) -> CompiledPlan:
     # Defense in depth on the frozen structure: the wire validator owns these
     # rules today; the compiled form must keep holding them if the contract
     # ever grows beyond the fixed four-stage pipeline.
-    if len(nodes) != len(OPERATIONS):
+    if len(nodes) != 4:
         raise RuntimeFault('PLAN_INVALID', '已编译计划的节点数不符合当前契约。')
     if len({node.id for node in nodes}) != len(nodes):
         raise RuntimeFault('PLAN_INVALID', '已编译计划存在重复节点标识。')
+    if nodes[0].operation != 'inputs.snapshot' or nodes[1].operation not in COMPUTE_OPERATIONS \
+            or nodes[2].operation != 'artifacts.export' or nodes[3].operation != 'verification.fixture':
+        raise RuntimeFault('PLAN_INVALID', '已编译计划包含不支持的动作或顺序。')
     ids = {node.id for node in nodes}
     for index, node in enumerate(nodes):
-        if node.operation != OPERATIONS[index]:
-            raise RuntimeFault('PLAN_INVALID', '已编译计划包含不支持的动作或顺序。')
         expected = () if index == 0 else (nodes[index - 1].id,)
         if node.depends_on != expected or any(dep not in ids for dep in node.depends_on):
             raise RuntimeFault('PLAN_INVALID', '已编译计划的依赖关系不合法。')

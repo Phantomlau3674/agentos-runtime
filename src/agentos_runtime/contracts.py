@@ -7,8 +7,10 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, model_validator
 
-Operation = Literal["inputs.snapshot", "tabular.aggregate", "artifacts.export", "verification.fixture"]
+Operation = Literal["inputs.snapshot", "tabular.aggregate", "files.dedup_manifest",
+                    "artifacts.export", "verification.fixture"]
 OPERATIONS = ("inputs.snapshot", "tabular.aggregate", "artifacts.export", "verification.fixture")
+COMPUTE_OPERATIONS = ("tabular.aggregate", "files.dedup_manifest")
 
 
 class StrictModel(BaseModel):
@@ -64,8 +66,10 @@ class PlanSpec(StrictModel):
         ids = [node.id for node in self.nodes]
         if len(set(ids)) != len(ids):
             raise ValueError("duplicate node identifiers")
-        # This spike supports exactly one ordered four-stage pipeline, not a generic DAG.
-        if tuple(n.operation for n in self.nodes) != OPERATIONS:
+        # Fixed four-stage linear pipeline; only the compute stage varies by family.
+        ops = tuple(n.operation for n in self.nodes)
+        if ops[0] != "inputs.snapshot" or ops[1] not in COMPUTE_OPERATIONS \
+                or ops[2] != "artifacts.export" or ops[3] != "verification.fixture":
             raise ValueError("unsupported operation sequence")
         for i, node in enumerate(self.nodes):
             expected = [] if i == 0 else [self.nodes[i - 1].id]
@@ -89,4 +93,15 @@ def default_plan() -> PlanSpec:
     return PlanSpec(goal="汇总合成 CSV，保留原始输入，独立核验金额和异常。", nodes=[
         ActionSpec(id=name, operation=operation, depends_on=[] if i == 0 else [names[i - 1]])
         for i, (name, operation) in enumerate(zip(names, OPERATIONS))
+    ])
+
+
+def default_dedup_plan() -> PlanSpec:
+    """Second file family (ADP-006): content-hash manifest and duplicate groups."""
+    names = ("snapshot", "dedup", "export", "verify")
+    operations = ("inputs.snapshot", "files.dedup_manifest", "artifacts.export",
+                  "verification.fixture")
+    return PlanSpec(goal="合成文件清单与去重：按内容哈希分组定位重复副本，独立核验。", nodes=[
+        ActionSpec(id=name, operation=operation, depends_on=[] if i == 0 else [names[i - 1]])
+        for i, (name, operation) in enumerate(zip(names, operations))
     ])
