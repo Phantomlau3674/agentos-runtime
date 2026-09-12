@@ -24,6 +24,7 @@
 - 同分支：REV-014 缓存键分层（ADR 0016）、REV-015 资源键与预算传递（ADR 0017）、REV-017 上下文分层（ADR 0018）、REV-018 能力启用生命周期（docs/CAPABILITY_LIFECYCLE.md）、REV-020 状态化测试与消融报告（reports/2026-09-11-rev020-ablation-continue-stop.md，结论：继续）均已落地。
 - 同分支：ADP-006 第二个文件任务族（ADR 0019）：files.dedup_manifest 计算操作 + 独立核验器 fixture_dedup_manifest.v1 + oracle schema 绑定；复用同一执行器与恢复语义。6 项族测试通过，本机完整套件 260 通过、5 跳过。
 - 同分支：ADP-005 本地 mock 草稿站（ADR 0020）：drafts.mock_flow 幂等建稿+回读，崩溃重跑不产生重复草稿；BEN-005 治理开销实测 A/B（benchmarks/ab_compare.py，本机 50 文件治理路径约为裸批 9.5×）；DAT-006 任务空间配额与 dry-run GC（maintenance.py + CLI maintain + owner max_task_bytes）。本机完整套件 269 通过、5 跳过。
+- 同分支：EXE-003 快照读取有界并行（≥8 文件、4 worker、先 stat 预算再读、按名确定性）；EXE-004 取消在动作边界生效且 CANCELLED 终态不重试。全量 271 通过、5 跳过，套件耗时 154s→84s。
 
 ## 仍未完成
 
